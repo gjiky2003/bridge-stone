@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Auto-Draft Setup — Loan #{{ loan.id }}{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <nav class="flex mb-6 text-sm text-gray-500">
+        <a href="{{ url_for('borrower.dashboard') }}" class="hover:text-gray-700">Dashboard</a>
+        <span class="mx-2">/</span>
+        <a href="{{ url_for('borrower.payments', loan_id=loan.id) }}" class="hover:text-gray-700">Payments</a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-900 font-medium">Auto-Draft</span>
+    </nav>
+
+    <h1 class="text-2xl font-bold text-gray-900 mb-2">Auto-Draft Setup</h1>
+    <p class="text-gray-500 mb-2">Loan #{{ loan.id }} — {{ deal.property.address if deal and deal.property else 'Property' }}</p>
+
+    {% if loan.monthly_payment %}
+    <p class="text-sm text-gray-600 mb-6">Monthly payment: <strong>${{ '{:,.2f}'.format(loan.monthly_payment) }}</strong></p>
+    {% endif %}
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <form method="POST">
+            <!-- Enable/Disable Toggle -->
+            <div class="mb-6">
+                <label class="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="auto_draft_enabled" class="sr-only peer"
+                           {% if loan.auto_draft_enabled %}checked{% endif %}>
+                    <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-100 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
+                    <span class="ml-3 text-sm font-medium text-gray-900">Enable Auto-Draft</span>
+                </label>
+                <p class="mt-1 text-xs text-gray-500 ml-14">Automatically draft your monthly payment from your linked bank account.</p>
+            </div>
+
+            <!-- Draft Day -->
+            <div class="mb-6">
+                <label for="auto_draft_day" class="block text-sm font-medium text-gray-700 mb-1.5">
+                    Draft Day of Month
+                </label>
+                <select id="auto_draft_day" name="auto_draft_day"
+                        class="block w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition">
+                    {% for day in range(1, 29) %}
+                    <option value="{{ day }}" {% if loan.auto_draft_day == day %}selected{% elif not loan.auto_draft_day and day == 5 %}selected{% endif %}>
+                        {{ day }}{% if day == 1 %}st{% elif day == 2 %}nd{% elif day == 3 %}rd{% else %}th{% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+                <p class="mt-1 text-xs text-gray-500">Payments will be drafted on this day each month. Available days: 1st–28th.</p>
+            </div>
+
+            <!-- Current Status -->
+            <div class="mb-6 p-4 rounded-lg
+                {% if loan.auto_draft_enabled %}bg-green-50 border border-green-200{% else %}bg-gray-50 border border-gray-200{% endif %}">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        {% if loan.auto_draft_enabled %}
+                        <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        {% else %}
+                        <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                        {% endif %}
+                    </div>
+                    <p class="ml-3 text-sm font-medium
+                        {% if loan.auto_draft_enabled %}text-green-800{% else %}text-gray-600{% endif %}">
+                        {% if loan.auto_draft_enabled %}
+                        Auto-draft is active — payments draft on the {{ loan.auto_draft_day }}{% if loan.auto_draft_day == 1 %}st{% elif loan.auto_draft_day == 2 %}nd{% elif loan.auto_draft_day == 3 %}rd{% else %}th{% endif %} of each month.
+                        {% else %}
+                        Auto-draft is currently disabled.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <button type="submit"
+                    class="w-full py-3 px-4 bg-primary hover:bg-primary-dark text-white font-semibold rounded-lg shadow hover:shadow-md transition">
+                Save Auto-Draft Settings
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

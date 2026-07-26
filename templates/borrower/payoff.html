@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% block title %}Payoff Calculator — BridgeStone Capital{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+        <nav class="flex mb-4 text-sm text-gray-500">
+            <a href="{{ url_for('borrower.dashboard') }}" class="hover:text-gray-700">Dashboard</a>
+            <span class="mx-2">/</span>
+            <span class="text-gray-900 font-medium">Payoff Calculator</span>
+        </nav>
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Payoff Calculator</h1>
+        <p class="text-gray-500 mt-1">Estimate your total payoff amount including accrued points and daily charges.</p>
+    </div>
+
+    <!-- Loan Summary -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Loan Summary</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-gray-50 rounded-lg p-4">
+                <p class="text-xs text-gray-500 uppercase">Principal Balance</p>
+                <p class="text-xl font-bold text-gray-900 mt-1">{{ '${:,.0f}'.format(loan.current_balance) if loan.current_balance else '—' }}</p>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4">
+                <p class="text-xs text-gray-500 uppercase">Interest Rate</p>
+                <p class="text-xl font-bold text-gray-900 mt-1">{{ '{:.2f}%'.format(deal.approved_rate * 100) if deal and deal.approved_rate else '—' }}</p>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4">
+                <p class="text-xs text-gray-500 uppercase">Origination Date</p>
+                <p class="text-xl font-bold text-gray-900 mt-1">{{ loan.origination_date.strftime('%b %d, %Y') if loan.origination_date else '—' }}</p>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4">
+                <p class="text-xs text-gray-500 uppercase">Days Outstanding</p>
+                <p class="text-xl font-bold text-gray-900 mt-1">{{ days_since_origination }} days</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payoff Calculator -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Calculator -->
+        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-6">Calculate Payoff</h2>
+
+            <div class="space-y-5">
+                <!-- Payoff Good Thru Date -->
+                <div>
+                    <label for="payoff_date" class="block text-sm font-medium text-gray-700 mb-1.5">
+                        Payoff Good Thru Date
+                    </label>
+                    <input type="date" id="payoff_date" name="payoff_date"
+                           value="{{ today }}"
+                           class="block w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition"
+                           onchange="calculatePayoff()">
+                    <p class="text-xs text-gray-400 mt-1">Select the date you plan to pay off the loan. Points will be calculated through this date.</p>
+                </div>
+
+                <!-- Results -->
+                <div class="bg-gray-50 rounded-xl p-5 space-y-4" id="payoff-results">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <span class="text-xs text-gray-500 uppercase">Principal Balance</span>
+                            <p class="text-lg font-bold text-gray-900" id="calc-principal">
+                                {{ '${:,.2f}'.format(loan.current_balance or 0) }}
+                            </p>
+                        </div>
+                        <div>
+                            <span class="text-xs text-gray-500 uppercase">Accrued Points to Date</span>
+                            <p class="text-lg font-bold text-amber-700" id="calc-accrued">
+                                {{ '${:,.2f}'.format(accrued_points) }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <span class="text-xs text-gray-500 uppercase">Additional Days</span>
+                            <p class="text-lg font-bold text-gray-900" id="calc-extra-days">—</p>
+                        </div>
+                        <div>
+                            <span class="text-xs text-gray-500 uppercase">Additional Points</span>
+                            <p class="text-lg font-bold text-amber-700" id="calc-extra-points">—</p>
+                        </div>
+                    </div>
+                    <div class="border-t-2 border-primary pt-4">
+                        <div class="flex items-baseline justify-between">
+                            <span class="text-sm font-semibold text-gray-900 uppercase">Total Payoff Amount</span>
+                            <p class="text-2xl font-black text-primary" id="calc-total">
+                                {{ '${:,.2f}'.format((loan.current_balance or 0) + accrued_points) }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Points Info -->
+                {% if deal and deal.points_type == 'daily' %}
+                <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <div class="flex items-start space-x-3">
+                        <svg class="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                        <div>
+                            <p class="text-sm font-medium text-amber-800">Daily Accruing Points</p>
+                            <p class="text-xs text-amber-700 mt-1">
+                                Points accrue at <strong>{{ '${:,.2f}'.format(daily_points_rate) }}/day</strong>.
+                                The longer the loan is outstanding, the higher the total points at payoff.
+                            </p>
+                            {% if daily_points_rate > 0 %}
+                            <div class="mt-3 grid grid-cols-3 gap-2">
+                                <div class="bg-amber-100 rounded p-2 text-center">
+                                    <p class="text-xs text-amber-600">30 days</p>
+                                    <p class="text-sm font-bold text-amber-800">{{ '${:,.0f}'.format(daily_points_rate * 30) }}</p>
+                                </div>
+                                <div class="bg-amber-100 rounded p-2 text-center">
+                                    <p class="text-xs text-amber-600">60 days</p>
+                                    <p class="text-sm font-bold text-amber-800">{{ '${:,.0f}'.format(daily_points_rate * 60) }}</p>
+                                </div>
+                                <div class="bg-amber-100 rounded p-2 text-center">
+                                    <p class="text-xs text-amber-600">90 days</p>
+                                    <p class="text-sm font-bold text-amber-800">{{ '${:,.0f}'.format(daily_points_rate * 90) }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Wire Instructions -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Wire Instructions</h2>
+            <div class="space-y-3 text-sm">
+                <div>
+                    <p class="text-xs text-gray-500 uppercase font-medium">Bank</p>
+                    <p class="font-semibold text-gray-900">BridgeStone Capital Trust</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 uppercase font-medium">Routing Number</p>
+                    <p class="font-mono font-semibold text-gray-900 bg-gray-50 px-2 py-1 rounded">{{ '067014822' if not config.DEBUG else '•••••••••' }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 uppercase font-medium">Account Number</p>
+                    <p class="font-mono font-semibold text-gray-900 bg-gray-50 px-2 py-1 rounded">{{ '987654321012' if not config.DEBUG else '••••••••••••' }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 uppercase font-medium">Reference</p>
+                    <p class="font-mono font-semibold text-gray-900 bg-gray-50 px-2 py-1 rounded">LOAN-{{ loan.id if loan else 'XXXX' }}-PAYOFF</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 uppercase font-medium">SWIFT</p>
+                    <p class="font-mono font-semibold text-gray-900 bg-gray-50 px-2 py-1 rounded">{{ 'BSTRUS33' if not config.DEBUG else '•••••••••' }}</p>
+                </div>
+            </div>
+
+            <div class="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div class="flex items-start space-x-2">
+                    <svg class="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    </svg>
+                    <p class="text-xs text-blue-700">
+                        Payoff amounts are good through the selected date. Please wire funds before the good-thru date to avoid additional points accrual.
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button onclick="window.print()"
+                        class="w-full py-2.5 px-4 bg-primary hover:bg-primary-dark text-white font-semibold rounded-lg shadow transition text-sm">
+                    <svg class="w-4 h-4 inline mr-1.5 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                    </svg>
+                    Print Payoff Statement
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const dailyRate = {{ daily_points_rate or 0 }};
+    const currentBalance = {{ loan.current_balance or 0 }};
+    const accruedPoints = {{ accrued_points or 0 }};
+    const originationDate = new Date('{{ loan.origination_date.isoformat() if loan.origination_date else '' }}');
+    const today = new Date('{{ today }}');
+
+    function calculatePayoff() {
+        const payoffDateInput = document.getElementById('payoff_date').value;
+        if (!payoffDateInput) return;
+
+        const payoffDate = new Date(payoffDateInput + 'T00:00:00');
+        const extraDays = Math.max(0, Math.floor((payoffDate - today) / (1000 * 60 * 60 * 24)));
+        const extraPoints = extraDays * dailyRate;
+
+        document.getElementById('calc-extra-days').textContent = extraDays + ' days';
+        document.getElementById('calc-extra-points').textContent = '$' + extraPoints.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+        const totalPayoff = currentBalance + accruedPoints + extraPoints;
+        document.getElementById('calc-total').textContent = '$' + totalPayoff.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+
+    // Initialize
+    calculatePayoff();
+</script>
+{% endblock %}

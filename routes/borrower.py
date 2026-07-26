@@ -7,7 +7,7 @@ from flask import (
 )
 from flask_login import login_required, current_user
 
-from models import db, User, Borrower, Property, Deal, Loan, Draw, Payment
+from models import db, User, Borrower, Property, Deal, Loan, Draw, Payment, Collateral
 
 logger = logging.getLogger(__name__)
 
@@ -90,6 +90,27 @@ def dashboard():
     deals = Deal.query.filter_by(borrower_id=borrower.id)\
                      .order_by(Deal.submitted_at.desc()).all()
 
+    # Attach loan data for each deal
+    deals_with_loans = []
+    from datetime import date as dt_date
+    today = dt_date.today()
+    for d in deals:
+        loan = Loan.query.filter_by(deal_id=d.id).first()
+        deal_info = {
+            'deal': d,
+            'loan': loan,
+            'daily_points_accrued': 0,
+            'auto_draft_enabled': False,
+        }
+        if loan and loan.points_type == 'daily':
+            rate = loan.daily_points_rate or d.daily_points_rate or 0
+            if loan.origination_date and rate:
+                days = max(0, (today - loan.origination_date).days)
+                deal_info['daily_points_accrued'] = round(days * rate, 2)
+        if loan:
+            deal_info['auto_draft_enabled'] = loan.auto_draft_enabled or False
+        deals_with_loans.append(deal_info)
+
     active_deals = [d for d in deals if d.status in ('active', 'in_closing', 'funded')]
     pending_deals = [d for d in deals if d.status in ('new', 'pre_screened', 'under_review')]
     closed_deals = [d for d in deals if d.status in ('approved', 'rejected', 'paid_off', 'defaulted')]
@@ -99,7 +120,7 @@ def dashboard():
 
     return render_template('borrower/dashboard.html',
                            borrower=borrower,
-                           deals=deals,
+                           deals=deals_with_loans,
                            active_deals=active_deals,
                            pending_deals=pending_deals,
                            closed_deals=closed_deals,
@@ -162,6 +183,19 @@ def apply():
 
                 deal_data['exit_strategy'] = request.form.get('exit_strategy', 'sale')
                 deal_data['projected_hold_months'] = int(request.form.get('projected_hold_months', 6) or 6)
+
+                # Financing structure
+                deal_data['financing_type'] = request.form.get('financing_type', 'down_payment')
+                deal_data['points_type'] = request.form.get('points_type', 'upfront')
+
+                # Cross-collateral fields
+                if deal_data['financing_type'] == 'cross_collateral':
+                    deal_data['collateral_address'] = request.form.get('collateral_address', '')
+                    try:
+                        deal_data['collateral_value'] = float(request.form.get('collateral_value', 0) or 0)
+                    except ValueError:
+                        deal_data['collateral_value'] = 0
+                    deal_data['collateral_free_clear'] = request.form.get('collateral_free_clear') == 'on'
 
                 step1 = session.get('apply_step1', {})
                 product_type = step1.get('product_type', 'bridge')
@@ -366,6 +400,41 @@ def submit_deal(id):
         elif deal.product_type == 'dscr':
             deal.monthly_rent = step2.get('monthly_rent', deal.monthly_rent)
 
+        # Financing structure fields
+        deal.financing_type = step2.get('financing_type', deal.financing_type or 'down_payment')
+        deal.points_type = step2.get('points_type', deal.points_type or 'upfront')
+
+        # Daily points rate from pricing engine
+        if deal.points_type == 'daily':
+            from underwriting.pricing import PointsCalculator
+            deal.daily_points_rate = PointsCalculator.suggest_daily_rate(
+                loan_amount, deal.risk_tier or 'C'
+            )
+            deal.daily_points_amount = PointsCalculator.calc_daily_points(
+                loan_amount, deal.daily_points_rate, 30
+            )
+
+        # Cross-collateral: create Collateral record
+        if step2.get('financing_type') == 'cross_collateral':
+            collat_addr = step2.get('collateral_address', '').strip()
+            if collat_addr:
+                from underwriting.pricing import CollateralAnalyzer
+                existing_collateral = Collateral.query.filter_by(deal_id=deal.id).first()
+                if existing_collateral:
+                    existing_collateral.property.address = collat_addr
+                else:
+                    collat_prop = Property(address=collat_addr)
+                    db.session.add(collat_prop)
+                    db.session.flush()
+                    collateral = Collateral(
+                        deal_id=deal.id,
+                        property_id=collat_prop.id,
+                        estimated_value=step2.get('collateral_value', 0) or 0,
+                        is_free_and_clear=CollateralAnalyzer.verify_free_and_clear(collat_addr),
+                        available_equity=CollateralAnalyzer.estimate_available_equity(collat_addr),
+                    )
+                    db.session.add(collateral)
+
     # Calculate basic ratios
     purchase_price = deal.purchase_price or 0
     loan_amount = deal.loan_amount or 0
@@ -515,3 +584,88 @@ def payments(loan_id):
                            payments=payments_list,
                            total_paid=total_paid,
                            total_due=total_due)
+
+
+# ================================================================
+# Payoff Calculator
+# ================================================================
+@borrower_bp.route('/loans/<int:loan_id>/payoff')
+@login_required
+def payoff(loan_id):
+    borrower = _get_borrower()
+    if borrower is None:
+        return redirect(url_for('landing'))
+
+    loan = Loan.query.filter_by(id=loan_id, borrower_id=borrower.id).first_or_404()
+    deal = Deal.query.get(loan.deal_id)
+
+    # Use PointsCalculator for accurate math
+    from underwriting.pricing import PointsCalculator
+    from automation.origination import OriginationAutomator
+
+    payoff_date_str = request.args.get('payoff_date', date.today().isoformat())
+    try:
+        payoff_date_obj = date.fromisoformat(payoff_date_str)
+    except (ValueError, TypeError):
+        payoff_date_obj = date.today()
+
+    # Generate full payoff statement
+    payoff = OriginationAutomator.generate_payoff_statement(loan, payoff_date_obj)
+
+    # Daily points info for display
+    daily_points_rate = payoff.get('daily_points_rate', 0)
+    daily_points_accrued = payoff.get('daily_points_accrued', 0)
+    per_diem = payoff.get('per_diem_after', 0)
+
+    # Points type from deal
+    points_type = deal.points_type if deal else 'upfront'
+
+    return render_template('borrower/payoff.html',
+                           borrower=borrower,
+                           loan=loan,
+                           deal=deal,
+                           payoff=payoff,
+                           today=date.today().isoformat(),
+                           daily_points_rate=daily_points_rate,
+                           daily_points_accrued=daily_points_accrued,
+                           per_diem=per_diem,
+                           points_type=points_type)
+
+
+# ================================================================
+# Auto-Draft / ACH Setup
+# ================================================================
+@borrower_bp.route('/loans/<int:loan_id>/autopay', methods=['GET', 'POST'])
+@login_required
+def autopay(loan_id):
+    borrower = _get_borrower()
+    if borrower is None:
+        return redirect(url_for('landing'))
+
+    loan = Loan.query.filter_by(id=loan_id, borrower_id=borrower.id).first_or_404()
+    deal = Deal.query.get(loan.deal_id)
+
+    if request.method == 'POST':
+        auto_draft_enabled = request.form.get('auto_draft_enabled') == 'on'
+        auto_draft_day = int(request.form.get('auto_draft_day', 5) or 5)
+
+        # Clamp day between 1-28
+        auto_draft_day = max(1, min(28, auto_draft_day))
+
+        loan.auto_draft_enabled = auto_draft_enabled
+        if auto_draft_enabled:
+            loan.auto_draft_day = auto_draft_day
+        else:
+            loan.auto_draft_day = None
+        db.session.commit()
+
+        if auto_draft_enabled:
+            flash(f'Auto-draft enabled. Monthly payments will be drafted on day {auto_draft_day} of each month.', 'success')
+        else:
+            flash('Auto-draft disabled.', 'info')
+        return redirect(url_for('borrower.payments', loan_id=loan.id))
+
+    return render_template('borrower/autopay.html',
+                           borrower=borrower,
+                           loan=loan,
+                           deal=deal)

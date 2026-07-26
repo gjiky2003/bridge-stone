@@ -160,6 +160,13 @@ def submit_review(deal_id):
     except ValueError:
         approved_term = 0
 
+    # New fields: points type and daily rate
+    points_type = request.form.get('points_type', 'upfront')
+    try:
+        daily_points_rate = float(request.form.get('daily_points_rate', 0) or 0)
+    except ValueError:
+        daily_points_rate = 0.0
+
     reason = request.form.get('decision_reason', '')
     notes = request.form.get('underwriter_notes', '')
 
@@ -171,6 +178,8 @@ def submit_review(deal_id):
         deal.approved_rate = approved_rate
         deal.approved_points = approved_points
         deal.approved_term_months = approved_term
+        deal.points_type = points_type
+        deal.daily_points_rate = daily_points_rate
         deal.decision_reason = reason
         deal.underwriter_notes = notes
         deal.approved_at = datetime.now(timezone.utc)
@@ -181,6 +190,8 @@ def submit_review(deal_id):
         deal.approved_rate = approved_rate or deal.approved_rate
         deal.approved_points = approved_points or deal.approved_points
         deal.approved_term_months = approved_term or deal.approved_term_months
+        deal.points_type = points_type or deal.points_type
+        deal.daily_points_rate = daily_points_rate or deal.daily_points_rate
         deal.decision_reason = reason
         deal.underwriter_notes = notes
         deal.approved_at = datetime.now(timezone.utc)
@@ -224,6 +235,17 @@ def submit_review(deal_id):
             )
             db.session.add(loan)
             db.session.commit()
+
+            # Auto-trigger origination automation
+            try:
+                borrower_user = User.query.get(deal.borrower.user_id) if deal.borrower else None
+                borrower_email = borrower_user.email if borrower_user else None
+                if borrower_email:
+                    from automation.origination import OriginationAutomator
+                    OriginationAutomator.on_approval(deal, borrower_email)
+                    flash('Term sheet and document checklist sent to borrower.', 'info')
+            except Exception as exc:
+                logger.error("Origination automation failed for deal #%d: %s", deal.id, exc)
 
     return redirect(url_for('admin.pipeline'))
 
@@ -295,3 +317,74 @@ def deal_detail(id):
                            draws=draws,
                            payments=payments,
                            investments=investments)
+
+
+# ================================================================
+# Term Sheet generation
+# ================================================================
+@admin_bp.route('/deal/<int:id>/term-sheet')
+@login_required
+def term_sheet(id):
+    if not _require_admin():
+        return redirect(url_for('landing'))
+
+    deal = Deal.query.get_or_404(id)
+    borrower = Borrower.query.get(deal.borrower_id)
+    user = User.query.get(borrower.user_id) if borrower else None
+    loan = Loan.query.filter_by(deal_id=deal.id).first()
+
+    # Calculate monthly payment
+    monthly_payment = 0
+    if deal.approved_rate and deal.loan_amount:
+        from underwriting.pricing import PointsCalculator
+        monthly_payment = PointsCalculator.calc_monthly_io_payment(deal.loan_amount, deal.approved_rate)
+
+    # Calculate daily points
+    daily_points_rate = deal.daily_points_rate or 0
+    daily_points_90 = round(daily_points_rate * 90, 4) if daily_points_rate else 0
+
+    # Determine down payment
+    if deal.financing_type == 'cross_collateral':
+        down_payment = 0
+        down_payment_label = '$0 (cross-collateral)'
+    else:
+        down_payment_pct = deal.down_payment_pct or 20
+        down_payment = round((deal.purchase_price or 0) * (down_payment_pct / 100), 2)
+        down_payment_label = '${:,.0f} ({}% down)'.format(down_payment, down_payment_pct)
+
+    return render_template('admin/term_sheet.html',
+                           deal=deal,
+                           borrower=borrower,
+                           user=user,
+                           loan=loan,
+                           today=date.today().isoformat(),
+                           monthly_payment=monthly_payment,
+                           daily_points_rate=daily_points_rate,
+                           daily_points_90=daily_points_90,
+                           down_payment=down_payment,
+                           down_payment_label=down_payment_label)
+
+
+@admin_bp.route('/deal/<int:id>/term-sheet/send', methods=['POST'])
+@login_required
+def send_term_sheet(id):
+    if not _require_admin():
+        return redirect(url_for('landing'))
+
+    deal = Deal.query.get_or_404(id)
+    borrower_user = User.query.get(deal.borrower.user_id) if deal.borrower else None
+    to_email = borrower_user.email if borrower_user else request.form.get('email', '')
+
+    if not to_email:
+        flash('No borrower email available.', 'error')
+        return redirect(url_for('admin.term_sheet', id=deal.id))
+
+    try:
+        from automation.origination import OriginationAutomator
+        result = OriginationAutomator.send_term_sheet_email(deal, to_email)
+        flash(f'Term sheet sent to {to_email}.', 'success')
+    except Exception as exc:
+        logger.error("Term sheet send failed for deal #%d: %s", deal.id, exc)
+        flash(f'Failed to send term sheet: {exc}', 'error')
+
+    return redirect(url_for('admin.term_sheet', id=deal.id))

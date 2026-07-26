@@ -220,6 +220,89 @@
                         </select>
                     </div>
 
+                    <!-- Financing Type Toggle -->
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Financing Structure</h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="relative">
+                                <input type="radio" name="financing_type" value="down_payment" checked class="sr-only financing-radio">
+                                <div class="border-2 border-primary rounded-xl p-4 cursor-pointer transition bg-blue-50" id="financing-down-card">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="font-semibold text-gray-900 text-sm">20% Down Payment</span>
+                                        <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">Standard</span>
+                                    </div>
+                                    <p class="text-xs text-gray-500">Borrower provides 20% cash down. Lower risk, best rates.</p>
+                                </div>
+                            </label>
+                            <label class="relative">
+                                <input type="radio" name="financing_type" value="cross_collateral" class="sr-only financing-radio">
+                                <div class="border-2 border-gray-200 rounded-xl p-4 cursor-pointer transition hover:border-gray-300" id="financing-cc-card">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="font-semibold text-gray-900 text-sm">Cross-Collateral</span>
+                                        <span class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">100% Financing</span>
+                                    </div>
+                                    <p class="text-xs text-gray-500">Use another free-and-clear property as collateral. No cash down required.</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Cross-Collateral Fields -->
+                    <div id="cross-collateral-fields" class="space-y-4 hidden">
+                        <h3 class="text-sm font-semibold text-purple-500 uppercase tracking-wider">Collateral Property Details</h3>
+                        <div>
+                            <label for="collateral_address" class="block text-sm font-medium text-gray-700 mb-1.5">Collateral Property Address *</label>
+                            <input type="text" id="collateral_address" name="collateral_address"
+                                   class="block w-full px-4 py-2.5 border border-gray-300 rounded-lg sm:text-sm focus:ring-2 focus:ring-primary focus:border-primary transition"
+                                   placeholder="456 Oak Ave, City, State ZIP">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="collateral_value" class="block text-sm font-medium text-gray-700 mb-1.5">Estimated Value</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 text-sm">$</span>
+                                    <input type="number" id="collateral_value" name="collateral_value" step="0.01"
+                                           class="block w-full pl-7 pr-4 py-2.5 border border-gray-300 rounded-lg sm:text-sm focus:ring-2 focus:ring-primary focus:border-primary transition"
+                                           placeholder="300,000">
+                                </div>
+                            </div>
+                            <div class="flex items-end pb-1">
+                                <label class="flex items-center space-x-3 cursor-pointer">
+                                    <input type="checkbox" id="collateral_free_clear" name="collateral_free_clear"
+                                           class="w-4 h-4 text-accent border-gray-300 rounded focus:ring-accent">
+                                    <span class="text-sm font-medium text-gray-700">Property is free &amp; clear</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Points Type -->
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Points Structure</h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="relative">
+                                <input type="radio" name="points_type" value="upfront" checked class="sr-only points-radio">
+                                <div class="border-2 border-primary rounded-xl p-4 cursor-pointer transition bg-blue-50" id="points-upfront-card">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="font-semibold text-gray-900 text-sm">Upfront Points</span>
+                                        <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">Standard</span>
+                                    </div>
+                                    <p class="text-xs text-gray-500">Points paid at closing. Typical: 2–3 points of loan amount.</p>
+                                </div>
+                            </label>
+                            <label class="relative">
+                                <input type="radio" name="points_type" value="daily" class="sr-only points-radio">
+                                <div class="border-2 border-gray-200 rounded-xl p-4 cursor-pointer transition hover:border-gray-300" id="points-daily-card">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="font-semibold text-gray-900 text-sm">Daily Accruing Points</span>
+                                        <span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-xs font-medium">Flexible</span>
+                                    </div>
+                                    <p class="text-xs text-gray-500">Points accrue daily. Pay only for the time you use. Ideal for short holds.</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
                     <!-- Bridge-specific fields -->
                     <div id="bridge-fields" class="space-y-5">
                         <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Rehab Details (Bridge)</h3>
@@ -382,12 +465,72 @@
                         <div id="review-loan" class="text-gray-900 font-medium">—</div>
                     </div>
                     <div class="bg-gray-50 rounded-xl p-5">
+                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Financing Type</h3>
+                        <div id="review-financing" class="text-gray-900 font-medium">—</div>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-5">
+                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Points Structure</h3>
+                        <div id="review-points" class="text-gray-900 font-medium">—</div>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-5">
                         <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Property Details</h3>
                         <div id="review-property" class="text-gray-900 font-medium">—</div>
                     </div>
                     <div class="bg-gray-50 rounded-xl p-5">
                         <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Exit Strategy</h3>
                         <div id="review-exit" class="text-gray-900 font-medium">—</div>
+                    </div>
+                    <div id="review-collateral-container" class="bg-gray-50 rounded-xl p-5 hidden">
+                        <h3 class="text-sm font-semibold text-purple-500 uppercase tracking-wider mb-3">Cross-Collateral</h3>
+                        <div id="review-collateral" class="text-gray-900 font-medium">—</div>
+                    </div>
+                </div>
+
+                <!-- Term Sheet Preview -->
+                <div class="mt-8 bg-white border-2 border-primary rounded-xl overflow-hidden" id="term-sheet-preview">
+                    <div class="bg-primary px-6 py-3">
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider">Estimated Term Sheet Preview</h3>
+                    </div>
+                    <div class="p-6 space-y-3">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <span class="text-xs text-gray-500 uppercase">Loan</span>
+                                <p class="text-base font-bold text-gray-900" id="ts-loan">—</p>
+                            </div>
+                            <div>
+                                <span class="text-xs text-gray-500 uppercase">Purchase</span>
+                                <p class="text-base font-bold text-gray-900" id="ts-purchase">—</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <span class="text-xs text-gray-500 uppercase">Down Payment</span>
+                                <p class="text-base font-bold text-gray-900" id="ts-down-payment">—</p>
+                            </div>
+                            <div>
+                                <span class="text-xs text-gray-500 uppercase">Rehab</span>
+                                <p class="text-base font-bold text-gray-900" id="ts-rehab">—</p>
+                            </div>
+                        </div>
+                        <div class="border-t border-gray-200 pt-3">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <span class="text-xs text-gray-500 uppercase">Monthly Interest-Only <span class="text-accent">(est. 10.5%)</span></span>
+                                    <p class="text-base font-bold text-gray-900" id="ts-monthly">—</p>
+                                </div>
+                                <div>
+                                    <span class="text-xs text-gray-500 uppercase">Points <span class="text-amber-600">(Daily)</span></span>
+                                    <p class="text-base font-bold" id="ts-points">—</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-amber-50 rounded-lg p-3 border border-amber-200">
+                            <p class="text-xs text-amber-800 font-medium" id="ts-payoff-note">—</p>
+                        </div>
+                        <div class="border-t border-gray-200 pt-3 space-y-1 text-xs text-gray-500">
+                            <p>Required: LLC, Trust, or Corporation</p>
+                            <p>Closing: 3–4 days after docs received</p>
+                        </div>
                     </div>
                 </div>
 
@@ -479,18 +622,66 @@
     }
 
     function populateReview() {
-        const getVal = (id) => document.getElementById(id)?.value || '—';
+        const getVal = (id) => document.getElementById(id)?.value || '';
         const productType = document.querySelector('input[name="product_type"]:checked')?.value || 'bridge';
         const productLabel = productType === 'bridge' ? 'Fix & Flip Bridge Loan' : 'DSCR Rental Loan';
+        const financingType = document.querySelector('input[name="financing_type"]:checked')?.value || 'down_payment';
+        const pointsType = document.querySelector('input[name="points_type"]:checked')?.value || 'upfront';
 
         document.getElementById('review-product').textContent = productLabel;
         document.getElementById('review-address').textContent = getVal('address') + ', ' + getVal('city') + ', ' + getVal('state') + ' ' + getVal('zip_code');
         document.getElementById('review-purchase').textContent = getVal('purchase_price') ? '$' + Number(getVal('purchase_price')).toLocaleString() : '—';
         document.getElementById('review-loan').textContent = getVal('loan_amount') ? '$' + Number(getVal('loan_amount')).toLocaleString() : '—';
+        document.getElementById('review-financing').textContent = financingType === 'cross_collateral' ? 'Cross-Collateral (100% Financing)' : '20% Down Payment';
+        document.getElementById('review-points').textContent = pointsType === 'daily' ? 'Daily Accruing Points' : 'Upfront Points';
         document.getElementById('review-property').textContent = [
             getVal('property_type'), getVal('beds') + ' bed', getVal('baths') + ' bath', getVal('sqft') + ' sqft'
-        ].filter(x => x && !x.startsWith('—') && !x.startsWith('0')).join(' · ') || '—';
+        ].filter(x => x && !x.startsWith('0')).join(' · ') || '—';
         document.getElementById('review-exit').textContent = getVal('exit_strategy') || '—';
+
+        // Cross-collateral review
+        if (financingType === 'cross_collateral') {
+            document.getElementById('review-collateral-container').classList.remove('hidden');
+            document.getElementById('review-collateral').textContent = 
+                (getVal('collateral_address') || 'No address') + ' — $' + (Number(getVal('collateral_value') || 0).toLocaleString()) +
+                (document.getElementById('collateral_free_clear')?.checked ? ' (Free & Clear)' : '');
+        } else {
+            document.getElementById('review-collateral-container').classList.add('hidden');
+        }
+
+        // Term sheet preview
+        const purchasePrice = Number(getVal('purchase_price') || 0);
+        const loanAmount = Number(getVal('loan_amount') || 0);
+        const rehabBudget = Number(getVal('rehab_budget') || 0);
+        const estRate = 0.105; // 10.5% estimated
+
+        document.getElementById('ts-loan').textContent = loanAmount ? '$' + loanAmount.toLocaleString() : '—';
+        document.getElementById('ts-purchase').textContent = purchasePrice ? '$' + purchasePrice.toLocaleString() : '—';
+
+        if (financingType === 'cross_collateral') {
+            document.getElementById('ts-down-payment').textContent = '$0 (cross-collateral)';
+        } else {
+            const downPmt = Math.round(purchasePrice * 0.20);
+            document.getElementById('ts-down-payment').textContent = '$' + downPmt.toLocaleString() + ' (20% down)';
+        }
+
+        document.getElementById('ts-rehab').textContent = rehabBudget ? '$' + rehabBudget.toLocaleString() + ' paid at closing' : '—';
+
+        const monthlyPayment = Math.round((loanAmount * estRate) / 12);
+        document.getElementById('ts-monthly').textContent = monthlyPayment ? '$' + monthlyPayment.toLocaleString() : '—';
+
+        // Points preview
+        if (pointsType === 'daily') {
+            const dailyRate = Math.round(loanAmount * 0.00025 * 100) / 100; // ~0.025% daily
+            const points90 = Math.round(dailyRate * 90);
+            document.getElementById('ts-points').textContent = '$' + dailyRate.toFixed(0) + '/day accruing';
+            document.getElementById('ts-payoff-note').textContent = 
+                'If paid off in 90 days: $' + points90.toLocaleString() + ' added to payoff';
+        } else {
+            const upfrontPts = Math.round(loanAmount * 0.025); // 2.5 points estimated
+            document.getElementById('ts-points').textContent = '$' + upfrontPts.toLocaleString() + ' (est. 2.5 pts at closing)';
+            document.getElementById('ts-payoff-note').textContent = 'Points paid upfront at closing — no daily accrual';
+        }
     }
 
     // Toggle bridge/dscr fields
@@ -519,6 +710,47 @@
                 const card = this.nextElementSibling;
                 card.classList.add('border-primary', 'bg-blue-50');
                 card.classList.remove('border-gray-200');
+            }
+        });
+    });
+
+    // Financing type toggle
+    document.querySelectorAll('.financing-radio').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const ccFields = document.getElementById('cross-collateral-fields');
+            const downCard = document.getElementById('financing-down-card');
+            const ccCard = document.getElementById('financing-cc-card');
+            if (this.value === 'cross_collateral') {
+                ccFields.classList.remove('hidden');
+                ccCard.classList.add('border-purple-500', 'bg-purple-50');
+                ccCard.classList.remove('border-gray-200');
+                downCard.classList.remove('border-primary', 'bg-blue-50');
+                downCard.classList.add('border-gray-200');
+            } else {
+                ccFields.classList.add('hidden');
+                downCard.classList.add('border-primary', 'bg-blue-50');
+                downCard.classList.remove('border-gray-200');
+                ccCard.classList.remove('border-purple-500', 'bg-purple-50');
+                ccCard.classList.add('border-gray-200');
+            }
+        });
+    });
+
+    // Points type toggle
+    document.querySelectorAll('.points-radio').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const upfrontCard = document.getElementById('points-upfront-card');
+            const dailyCard = document.getElementById('points-daily-card');
+            if (this.value === 'daily') {
+                dailyCard.classList.add('border-amber-500', 'bg-amber-50');
+                dailyCard.classList.remove('border-gray-200');
+                upfrontCard.classList.remove('border-primary', 'bg-blue-50');
+                upfrontCard.classList.add('border-gray-200');
+            } else {
+                upfrontCard.classList.add('border-primary', 'bg-blue-50');
+                upfrontCard.classList.remove('border-gray-200');
+                dailyCard.classList.remove('border-amber-500', 'bg-amber-50');
+                dailyCard.classList.add('border-gray-200');
             }
         });
     });

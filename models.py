@@ -112,10 +112,21 @@ class Deal(db.Model):
     borrower_score = db.Column(db.Float)
     risk_tier = db.Column(db.String(2))  # A, B, C, D, R
     
+    # Financing — cross-collateral & daily points
+    financing_type = db.Column(db.String(50), default='down_payment')  # 'down_payment' or 'cross_collateral'
+    down_payment_pct = db.Column(db.Float)  # borrower cash down payment percentage
+    points_type = db.Column(db.String(20), default='upfront')  # 'upfront' or 'daily'
+    daily_points_amount = db.Column(db.Float)  # estimated daily points dollar amount
+    # Cross-collateral fields
+    collateral_address = db.Column(db.String(500))
+    collateral_value = db.Column(db.Float)
+    collateral_free_clear = db.Column(db.Boolean, default=False)
+
     # Decision
     approved_rate = db.Column(db.Float)
     approved_points = db.Column(db.Float)
     approved_term_months = db.Column(db.Integer)
+    daily_points_rate = db.Column(db.Float)  # $/day for daily-accruing points
     underwriter_notes = db.Column(db.Text)
     decision_reason = db.Column(db.Text)
     
@@ -160,6 +171,14 @@ class Loan(db.Model):
     next_payment_date = db.Column(db.Date)
     last_payment_date = db.Column(db.Date)
     days_late = db.Column(db.Integer, default=0)
+    
+    # Daily points tracking
+    daily_points_accrued = db.Column(db.Float, default=0.0)
+    payoff_date = db.Column(db.Date)
+    
+    # Auto-draft / ACH
+    auto_draft_enabled = db.Column(db.Boolean, default=False)
+    auto_draft_day = db.Column(db.Integer)  # day of month (1-28)
     
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
@@ -215,3 +234,20 @@ class Investment(db.Model):
     total_return = db.Column(db.Float, default=0)
     irr = db.Column(db.Float)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class Collateral(db.Model):
+    """Cross-collateral property linking a deal to additional collateral properties."""
+    __tablename__ = 'collateral'
+    id = db.Column(db.Integer, primary_key=True)
+    deal_id = db.Column(db.Integer, db.ForeignKey('deals.id'), nullable=False)
+    property_id = db.Column(db.Integer, db.ForeignKey('properties.id'), nullable=False)
+    collateral_type = db.Column(db.String(50), default='real_estate')  # real_estate, vehicle, other
+    estimated_value = db.Column(db.Float)
+    lien_position = db.Column(db.Integer, default=1)  # 1 = first lien
+    is_free_and_clear = db.Column(db.Boolean, default=None)  # None = unverified
+    available_equity = db.Column(db.Float)
+    verified_at = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    property = db.relationship('Property', backref='collaterals')

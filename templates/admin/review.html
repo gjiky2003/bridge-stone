@@ -194,6 +194,26 @@
                         <p class="text-sm font-semibold text-gray-900">{{ deal.exit_strategy | replace('_', ' ') | title if deal.exit_strategy else '—' }}</p>
                     </div>
                     <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Financing Type</p>
+                        <p class="text-sm font-semibold text-gray-900">
+                            {% if deal.financing_type == 'cross_collateral' %}
+                                <span class="text-purple-700">Cross-Collateral</span>
+                            {% else %}
+                                20% Down Payment
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Points Type</p>
+                        <p class="text-sm font-semibold text-gray-900">
+                            {% if deal.points_type == 'daily' %}
+                                <span class="text-amber-700">Daily Accruing</span>
+                            {% else %}
+                                Upfront
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
                         <p class="text-xs text-gray-500">Borrower Equity</p>
                         <p class="text-sm font-semibold text-gray-900">{{ '{:.1f}%'.format(deal.borrower_equity_pct * 100) if deal.borrower_equity_pct else '—' }}</p>
                     </div>
@@ -203,6 +223,34 @@
                     </div>
                 </div>
             </div>
+
+            {% if deal.financing_type == 'cross_collateral' and deal.collateral_address %}
+            <!-- Cross-Collateral Details -->
+            <div class="bg-white rounded-2xl shadow-sm border border-purple-200 p-6">
+                <h3 class="text-sm font-semibold text-purple-500 uppercase tracking-wider mb-4">
+                    <span class="inline-flex items-center">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                        Cross-Collateral Property
+                    </span>
+                </h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div class="bg-purple-50 rounded-lg p-3">
+                        <p class="text-xs text-purple-500">Address</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ deal.collateral_address }}</p>
+                    </div>
+                    <div class="bg-purple-50 rounded-lg p-3">
+                        <p class="text-xs text-purple-500">Estimated Value</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ '${:,.0f}'.format(deal.collateral_value) if deal.collateral_value else '—' }}</p>
+                    </div>
+                    <div class="bg-purple-50 rounded-lg p-3">
+                        <p class="text-xs text-purple-500">Status</p>
+                        <p class="text-sm font-semibold {% if deal.collateral_free_clear %}text-accent{% else %}text-yellow-600{% endif %}">
+                            {{ 'Free & Clear' if deal.collateral_free_clear else 'Encumbered' }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
 
             <!-- Borrower Card -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
@@ -298,6 +346,34 @@
                         </div>
                     </div>
 
+                    <!-- Points Type -->
+                    <div>
+                        <label for="points_type" class="block text-sm font-medium text-gray-700 mb-1.5">
+                            Points Type
+                        </label>
+                        <select id="points_type" name="points_type"
+                                class="block w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition"
+                                onchange="toggleDailyPointsRate()">
+                            <option value="upfront" {% if deal.points_type == 'upfront' %}selected{% endif %}>Upfront Points</option>
+                            <option value="daily" {% if deal.points_type == 'daily' %}selected{% endif %}>Daily Accruing Points</option>
+                        </select>
+                    </div>
+
+                    <!-- Daily Points Rate -->
+                    <div id="daily-points-rate-group" {% if deal.points_type != 'daily' %}class="hidden"{% endif %}>
+                        <label for="daily_points_rate" class="block text-sm font-medium text-gray-700 mb-1.5">
+                            Daily Points Rate ($/day)
+                        </label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 text-sm">$</span>
+                            <input type="number" id="daily_points_rate" name="daily_points_rate" step="0.01" min="0"
+                                   value="{{ '{:.2f}'.format(deal.daily_points_rate) if deal.daily_points_rate else '' }}"
+                                   class="block w-full pl-7 pr-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition"
+                                   placeholder="40.00">
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1" id="daily-points-suggestion">Suggested: $40/day for a $130K loan</p>
+                    </div>
+
                     <!-- Term -->
                     <div>
                         <label for="approved_term_months" class="block text-sm font-medium text-gray-700 mb-1.5">
@@ -336,8 +412,9 @@
                     </div>
 
                     <!-- Action Buttons -->
-                    <div class="grid grid-cols-2 gap-3 pt-2">
-                        <button type="submit" name="action" value="approve"
+                    <div class="space-y-3 pt-2">
+                        <div class="grid grid-cols-2 gap-3">
+                            <button type="submit" name="action" value="approve"
                                 class="w-full py-3 px-4 bg-accent hover:bg-accent-dark text-white font-semibold rounded-lg shadow hover:shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
                                 {% if deal.status in ['active', 'paid_off', 'rejected'] %}disabled{% endif %}>
                             <svg class="w-5 h-5 inline mr-1.5 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -349,10 +426,31 @@
                             <svg class="w-5 h-5 inline mr-1.5 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             Deny
                         </button>
+                        </div>
+                        <!-- Generate Term Sheet -->
+                        <a href="{{ url_for('admin.term_sheet', id=deal.id) }}" target="_blank"
+                           class="block w-full text-center py-2.5 px-4 bg-white border-2 border-primary text-primary font-semibold rounded-lg hover:bg-primary hover:text-white transition text-sm">
+                            <svg class="w-4 h-4 inline mr-1.5 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            Generate Term Sheet
+                        </a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function toggleDailyPointsRate() {
+        const pointsType = document.getElementById('points_type').value;
+        const dailyGroup = document.getElementById('daily-points-rate-group');
+        if (pointsType === 'daily') {
+            dailyGroup.classList.remove('hidden');
+        } else {
+            dailyGroup.classList.add('hidden');
+        }
+    }
+</script>
 {% endblock %}
