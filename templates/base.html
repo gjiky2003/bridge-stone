@@ -30,6 +30,19 @@
         .gradient-hero { background: linear-gradient(135deg, #1a365d 0%, #0f2440 50%, #0a1628 100%); }
         .gradient-card { background: linear-gradient(135deg, #1a365d 0%, #2a4a7f 100%); }
         .score-gauge { transition: stroke-dashoffset 1s ease-in-out; }
+        
+        /* Mobile: make tables scroll horizontally */
+        .table-wrap { -webkit-overflow-scrolling: touch; }
+        @media (max-width: 768px) {
+            .table-wrap table { min-width: 600px; }
+            .hide-mobile { display: none !important; }
+            .stack-mobile { flex-direction: column !important; }
+            /* Bigger touch targets */
+            a, button, [role="button"], input[type="submit"] { min-height: 44px; min-width: 44px; }
+            input, select, textarea { font-size: 16px !important; }
+            /* Cards stack full width */
+            .card-grid { grid-template-columns: 1fr !important; }
+        }
     </style>
     {% block head %}{% endblock %}
 </head>
