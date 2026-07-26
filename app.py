@@ -97,14 +97,19 @@ def create_app():
     # DB INIT
     # ==========================================
     with app.app_context():
-        db.create_all()
-        # Create default admin if none exists
-        if not User.query.filter_by(role='admin').first():
-            admin = User(email='admin@bridgestonecapital.com', name='Admin', role='admin')
-            admin.set_password('admin123')
-            db.session.add(admin)
-            db.session.commit()
-            print("[INIT] Default admin created: admin@bridgestonecapital.com / admin123")
+        try:
+            import os as _os
+            if _os.environ.get('RENDER') or _os.environ.get('FLASK_ENV') == 'production':
+                app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/bridge_stone.db'
+            db.create_all()
+            if not User.query.filter_by(role='admin').first():
+                admin = User(email='admin@bridgestonecapital.com', name='Admin', role='admin')
+                admin.set_password('admin123')
+                db.session.add(admin)
+                db.session.commit()
+                print("[INIT] Admin created")
+        except Exception as e:
+            print(f"[INIT] Warning: {e}")
     
     return app
 
