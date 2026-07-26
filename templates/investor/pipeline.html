@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Investment Pipeline — BridgeStone Capital{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Investment Pipeline</h1>
+            <p class="text-gray-500 mt-1">Available deals seeking funding. Review and commit to opportunities.</p>
+        </div>
+        <div class="mt-4 sm:mt-0 flex items-center space-x-3">
+            <a href="{{ url_for('investor.dashboard') }}" class="text-sm text-gray-500 hover:text-gray-700 transition">← Dashboard</a>
+        </div>
+    </div>
+
+    <!-- Available Deals -->
+    {% if available_deals %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for deal in available_deals %}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition group">
+            <!-- Card Header -->
+            <div class="gradient-hero px-6 py-4 text-white">
+                <div class="flex items-center justify-between mb-1">
+                    <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-white/20 text-white">
+                        {{ 'Bridge' if deal.product_type == 'bridge' else 'DSCR' }}
+                    </span>
+                    {% if deal.risk_tier %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold
+                        {% if deal.risk_tier == 'A' %}bg-green-400/30 text-green-100
+                        {% elif deal.risk_tier == 'B' %}bg-blue-400/30 text-blue-100
+                        {% elif deal.risk_tier == 'C' %}bg-yellow-400/30 text-yellow-100
+                        {% else %}bg-red-400/30 text-red-100{% endif %}">
+                        Tier {{ deal.risk_tier }}
+                    </span>
+                    {% endif %}
+                </div>
+                <h3 class="text-lg font-bold truncate">{{ deal.property.address if deal.property else 'Property' }}</h3>
+                <p class="text-gray-300 text-sm">{{ deal.property.city }}, {{ deal.property.state }} {{ deal.property.zip_code }}</p>
+            </div>
+
+            <!-- Card Body -->
+            <div class="px-6 py-5 space-y-4">
+                <!-- Key Metrics -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Loan Amount</p>
+                        <p class="text-sm font-bold text-gray-900">{{ '${:,.0f}'.format(deal.loan_amount) if deal.loan_amount else '—' }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Interest Rate</p>
+                        <p class="text-sm font-bold text-accent">{{ '{:.2f}%'.format(deal.approved_rate * 100) if deal.approved_rate else 'TBD' }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Term</p>
+                        <p class="text-sm font-bold text-gray-900">{{ deal.approved_term_months ~ ' mo' if deal.approved_term_months else '—' }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Points</p>
+                        <p class="text-sm font-bold text-gray-900">{{ '{:.1f}'.format(deal.approved_points) if deal.approved_points else '—' }}</p>
+                    </div>
+                </div>
+
+                <!-- AI Score -->
+                {% if deal.deal_score is not none %}
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="text-xs text-gray-500 font-medium">AI Deal Score</span>
+                        <span class="text-xs font-bold text-gray-900">{{ '{:.0f}'.format(deal.deal_score) }}/100</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="h-2 rounded-full {% if deal.deal_score >= 80 %}bg-accent{% elif deal.deal_score >= 60 %}bg-blue-500{% elif deal.deal_score >= 40 %}bg-yellow-500{% else %}bg-red-500{% endif %}"
+                             style="width: {{ deal.deal_score }}%"></div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Projected Return -->
+                <div class="bg-blue-50 rounded-lg p-3 border border-blue-100">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-blue-600 font-medium">Projected Return</span>
+                        <span class="text-sm font-bold text-blue-800">
+                            {{ '{:.1f}%'.format(deal.projected_roi * 100) if deal.projected_roi else '—' }}
+                        </span>
+                    </div>
+                    <div class="flex items-center justify-between mt-1">
+                        <span class="text-xs text-blue-500">Estimated Hold</span>
+                        <span class="text-xs font-medium text-blue-700">{{ deal.projected_hold_months ~ ' months' if deal.projected_hold_months else '—' }}</span>
+                    </div>
+                </div>
+
+                <!-- Property Details -->
+                <div class="flex items-center space-x-4 text-xs text-gray-500">
+                    {% if deal.property %}
+                    <span>{{ deal.property.property_type }}</span>
+                    <span>·</span>
+                    <span>{{ deal.property.beds }}b/{{ deal.property.baths }}ba</span>
+                    <span>·</span>
+                    <span>{{ '{:,}'.format(deal.property.sqft) }} sqft</span>
+                    {% endif %}
+                </div>
+
+                <!-- Commit Button -->
+                <form method="POST" action="{{ url_for('investor.commit', deal_id=deal.id) }}" class="pt-1">
+                    <div class="flex space-x-2 mb-3">
+                        <div class="flex-1 relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 text-sm">$</span>
+                            <input type="number" name="amount" step="0.01" required
+                                   class="block w-full pl-7 pr-4 py-2 border border-gray-300 rounded-lg sm:text-sm focus:ring-2 focus:ring-primary focus:border-primary transition"
+                                   placeholder="Investment amount">
+                        </div>
+                    </div>
+                    <button type="submit"
+                            class="w-full py-2.5 px-4 bg-accent hover:bg-accent-dark text-white font-semibold rounded-lg shadow hover:shadow-md transition text-sm">
+                        Commit Investment
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-16 text-center">
+        <svg class="mx-auto h-16 w-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+        </svg>
+        <h3 class="mt-4 text-lg font-semibold text-gray-900">No Deals Available</h3>
+        <p class="mt-2 text-sm text-gray-500 max-w-md mx-auto">
+            There are currently no approved deals seeking investment. New opportunities will appear here once deals are approved and ready for funding.
+        </p>
+        <div class="mt-6">
+            <a href="{{ url_for('investor.dashboard') }}" class="inline-flex items-center px-6 py-2.5 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary-dark transition">
+                ← Back to Dashboard
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

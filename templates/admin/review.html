@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+{% block title %}Review Deal #{{ deal.id }} — BridgeStone Capital{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Breadcrumb -->
+    <nav class="flex mb-6 text-sm text-gray-500">
+        <a href="{{ url_for('admin.dashboard') }}" class="hover:text-gray-700">Dashboard</a>
+        <span class="mx-2">/</span>
+        <a href="{{ url_for('admin.pipeline') }}" class="hover:text-gray-700">Pipeline</a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-900 font-medium">Deal #{{ deal.id }}</span>
+    </nav>
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-900">
+                {{ deal.property.address if deal.property else 'Property' }}
+            </h1>
+            <p class="text-gray-500 mt-1">
+                {{ deal.property.city }}, {{ deal.property.state }} {{ deal.property.zip_code }}
+                {% if deal.product_type %}
+                · <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold
+                    {% if deal.product_type == 'bridge' %}bg-blue-100 text-blue-700{% else %}bg-emerald-100 text-emerald-700{% endif %}">
+                    {{ 'Bridge' if deal.product_type == 'bridge' else 'DSCR' }}
+                </span>
+                {% endif %}
+            </p>
+        </div>
+        <div class="mt-4 sm:mt-0">
+            <span class="inline-flex px-3 py-1.5 rounded-full text-sm font-semibold
+                {% if deal.status == 'new' %}bg-gray-100 text-gray-700
+                {% elif deal.status == 'under_review' %}bg-blue-100 text-blue-700
+                {% elif deal.status == 'approved' %}bg-green-100 text-green-700
+                {% elif deal.status == 'rejected' %}bg-red-100 text-red-700
+                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                {{ deal.status.replace('_', ' ') | title }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Split Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <!-- LEFT: Review panels (3 cols) -->
+        <div class="lg:col-span-3 space-y-6">
+            <!-- AI Score Card -->
+            {% if deal.deal_score is not none %}
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">AI Underwriting Scores</h3>
+                <!-- Overall gauge -->
+                <div class="flex items-center justify-center mb-6">
+                    <div class="relative w-36 h-36">
+                        <svg class="w-36 h-36 transform -rotate-90" viewBox="0 0 120 120">
+                            <circle cx="60" cy="60" r="52" fill="none" stroke="#e5e7eb" stroke-width="10"/>
+                            <circle cx="60" cy="60" r="52" fill="none"
+                                    stroke="{% if deal.deal_score >= 80 %}#059669{% elif deal.deal_score >= 60 %}#3b82f6{% elif deal.deal_score >= 40 %}#eab308{% else %}#ef4444{% endif %}"
+                                    stroke-width="10" stroke-linecap="round"
+                                    stroke-dasharray="{{ (deal.deal_score / 100) * 327 }} 327"
+                                    class="score-gauge"/>
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span class="text-3xl font-black text-gray-900">{{ '{:.0f}'.format(deal.deal_score) if deal.deal_score else '—' }}</span>
+                            <span class="text-xs text-gray-500 font-medium">/100</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="text-center p-3 bg-gray-50 rounded-lg">
+                        <p class="text-xs text-gray-500">Property</p>
+                        <p class="text-lg font-bold {% if deal.property_score and deal.property_score >= 70 %}text-accent{% elif deal.property_score and deal.property_score >= 50 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                            {{ '{:.0f}'.format(deal.property_score) if deal.property_score is not none else '—' }}
+                        </p>
+                    </div>
+                    <div class="text-center p-3 bg-gray-50 rounded-lg">
+                        <p class="text-xs text-gray-500">Market</p>
+                        <p class="text-lg font-bold {% if deal.market_score and deal.market_score >= 70 %}text-accent{% elif deal.market_score and deal.market_score >= 50 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                            {{ '{:.0f}'.format(deal.market_score) if deal.market_score is not none else '—' }}
+                        </p>
+                    </div>
+                    <div class="text-center p-3 bg-gray-50 rounded-lg">
+                        <p class="text-xs text-gray-500">Borrower</p>
+                        <p class="text-lg font-bold {% if deal.borrower_score and deal.borrower_score >= 70 %}text-accent{% elif deal.borrower_score and deal.borrower_score >= 50 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                            {{ '{:.0f}'.format(deal.borrower_score) if deal.borrower_score is not none else '—' }}
+                        </p>
+                    </div>
+                    <div class="text-center p-3 bg-gray-50 rounded-lg">
+                        <p class="text-xs text-gray-500">Risk Tier</p>
+                        <p class="text-lg font-bold
+                            {% if deal.risk_tier == 'A' %}text-green-600
+                            {% elif deal.risk_tier == 'B' %}text-blue-600
+                            {% elif deal.risk_tier == 'C' %}text-yellow-600
+                            {% elif deal.risk_tier == 'D' %}text-orange-600
+                            {% else %}text-red-600{% endif %}">
+                            {{ deal.risk_tier if deal.risk_tier else '—' }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Property Card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Property</h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Type</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ deal.property.property_type if deal.property else '—' }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Size</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ deal.property.beds if deal.property else '—' }} bed / {{ deal.property.baths if deal.property else '—' }} bath</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Sq Ft</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ '{:,}'.format(deal.property.sqft) if deal.property and deal.property.sqft else '—' }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Year Built</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ deal.property.year_built if deal.property else '—' }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Lot Size</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ '{:,.0f}'.format(deal.property.lot_size) if deal.property and deal.property.lot_size else '—' }} sqft</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Location</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ deal.property.city if deal.property else '—' }}, {{ deal.property.state if deal.property else '—' }}</p>
+                    </div>
+                </div>
+                {% if deal.property and deal.property.estimated_arv %}
+                <div class="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-blue-600 font-medium">ARV Estimate</span>
+                        <span class="text-sm font-bold text-blue-800">{{ '${:,.0f}'.format(deal.property.estimated_arv) }}</span>
+                    </div>
+                    <div class="flex justify-between items-center mt-1">
+                        <span class="text-xs text-blue-500">Range</span>
+                        <span class="text-xs text-blue-700">{{ '${:,.0f}'.format(deal.property.arv_low) if deal.property.arv_low else '—' }} – {{ '${:,.0f}'.format(deal.property.arv_high) if deal.property.arv_high else '—' }}</span>
+                    </div>
+                    <div class="flex justify-between items-center mt-1">
+                        <span class="text-xs text-blue-500">Confidence</span>
+                        <span class="text-xs text-blue-700">{{ '{:.0f}%'.format(deal.property.arv_confidence * 100) if deal.property.arv_confidence else '—' }}</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Deal Card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Deal Details</h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Product</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ 'Bridge' if deal.product_type == 'bridge' else 'DSCR' }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Loan Amount</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ '${:,.0f}'.format(deal.loan_amount) if deal.loan_amount else '—' }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Purchase Price</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ '${:,.0f}'.format(deal.purchase_price) if deal.purchase_price else '—' }}</p>
+                    </div>
+                    {% if deal.product_type == 'bridge' %}
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Rehab Budget</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ '${:,.0f}'.format(deal.rehab_budget) if deal.rehab_budget else '—' }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">LTV (ARV)</p>
+                        <p class="text-sm font-semibold {% if deal.ltv_arv and deal.ltv_arv <= 70 %}text-accent{% else %}text-yellow-600{% endif %}">
+                            {{ '{:.1f}%'.format(deal.ltv_arv * 100) if deal.ltv_arv else '—' }}
+                        </p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">LTC</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ '{:.1f}%'.format(deal.ltc_ratio * 100) if deal.ltc_ratio else '—' }}</p>
+                    </div>
+                    {% else %}
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Monthly Rent</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ '${:,.0f}'.format(deal.monthly_rent) if deal.monthly_rent else '—' }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">DSCR</p>
+                        <p class="text-sm font-semibold {% if deal.dscr_ratio and deal.dscr_ratio >= 1.0 %}text-accent{% else %}text-red-600{% endif %}">
+                            {{ '{:.2f}x'.format(deal.dscr_ratio) if deal.dscr_ratio else '—' }}
+                        </p>
+                    </div>
+                    {% endif %}
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Exit Strategy</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ deal.exit_strategy | replace('_', ' ') | title if deal.exit_strategy else '—' }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Borrower Equity</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ '{:.1f}%'.format(deal.borrower_equity_pct * 100) if deal.borrower_equity_pct else '—' }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Projected ROI</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ '{:.1f}%'.format(deal.projected_roi * 100) if deal.projected_roi else '—' }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Borrower Card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Borrower</h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Name</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ deal.borrower.user.name if deal.borrower and deal.borrower.user else '—' }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Email</p>
+                        <p class="text-sm font-semibold text-gray-900 truncate">{{ deal.borrower.user.email if deal.borrower and deal.borrower.user else '—' }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Entity</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ deal.borrower.entity_name if deal.borrower else '—' }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Experience</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ '{:.1f} yrs'.format(deal.borrower.years_experience) if deal.borrower and deal.borrower.years_experience else '—' }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Completed Flips</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ deal.borrower.completed_flips if deal.borrower else '—' }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Credit Score</p>
+                        <p class="text-sm font-semibold
+                            {% if deal.borrower and deal.borrower.credit_score is not none %}
+                                {% if deal.borrower.credit_score >= 700 %}text-accent{% else %}text-yellow-600{% endif %}
+                            {% endif %}">
+                            {{ deal.borrower.credit_score if deal.borrower else '—' }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Market Card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Market Analysis</h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Location</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ deal.property.city if deal.property else '—' }}, {{ deal.property.state if deal.property else '—' }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">Market Score</p>
+                        <p class="text-sm font-semibold {% if deal.market_score and deal.market_score >= 70 %}text-accent{% elif deal.market_score and deal.market_score >= 50 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                            {{ '{:.0f}'.format(deal.market_score) if deal.market_score is not none else '—' }}/100
+                        </p>
+                    </div>
+                    {% if deal.property %}
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs text-gray-500">ZIP</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ deal.property.zip_code or '—' }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Decision Form (2 cols) -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-20">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">Underwriting Decision</h3>
+
+                <form method="POST" action="{{ url_for('admin.review_deal', deal_id=deal.id) }}" class="space-y-5">
+                    <!-- Approved Rate -->
+                    <div>
+                        <label for="approved_rate" class="block text-sm font-medium text-gray-700 mb-1.5">
+                            Interest Rate (Annual %)
+                        </label>
+                        <div class="relative">
+                            <input type="number" id="approved_rate" name="approved_rate" step="0.01" min="0" max="30"
+                                   value="{{ '{:.2f}'.format(deal.approved_rate * 100) if deal.approved_rate else '' }}"
+                                   class="block w-full px-4 py-2.5 pr-10 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition"
+                                   placeholder="10.50">
+                            <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 text-sm">%</span>
+                        </div>
+                    </div>
+
+                    <!-- Points -->
+                    <div>
+                        <label for="approved_points" class="block text-sm font-medium text-gray-700 mb-1.5">
+                            Origination Points
+                        </label>
+                        <div class="relative">
+                            <input type="number" id="approved_points" name="approved_points" step="0.1" min="0" max="10"
+                                   value="{{ deal.approved_points if deal.approved_points else '' }}"
+                                   class="block w-full px-4 py-2.5 pr-10 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition"
+                                   placeholder="2.0">
+                            <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 text-sm">pts</span>
+                        </div>
+                    </div>
+
+                    <!-- Term -->
+                    <div>
+                        <label for="approved_term_months" class="block text-sm font-medium text-gray-700 mb-1.5">
+                            Term (Months)
+                        </label>
+                        <select id="approved_term_months" name="approved_term_months"
+                                class="block w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition">
+                            <option value="">Select term...</option>
+                            <option value="6" {% if deal.approved_term_months == 6 %}selected{% endif %}>6 months</option>
+                            <option value="9" {% if deal.approved_term_months == 9 %}selected{% endif %}>9 months</option>
+                            <option value="12" {% if deal.approved_term_months == 12 %}selected{% endif %}>12 months</option>
+                            <option value="18" {% if deal.approved_term_months == 18 %}selected{% endif %}>18 months</option>
+                            <option value="24" {% if deal.approved_term_months == 24 %}selected{% endif %}>24 months</option>
+                            <option value="360" {% if deal.approved_term_months == 360 %}selected{% endif %}>30 years (DSCR)</option>
+                        </select>
+                    </div>
+
+                    <!-- Notes -->
+                    <div>
+                        <label for="underwriter_notes" class="block text-sm font-medium text-gray-700 mb-1.5">
+                            Underwriter Notes
+                        </label>
+                        <textarea id="underwriter_notes" name="underwriter_notes" rows="4"
+                                  class="block w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition"
+                                  placeholder="Add any notes, conditions, or rationale...">{{ deal.underwriter_notes if deal.underwriter_notes else '' }}</textarea>
+                    </div>
+
+                    <!-- Decision Reason -->
+                    <div>
+                        <label for="decision_reason" class="block text-sm font-medium text-gray-700 mb-1.5">
+                            Decision Reason
+                        </label>
+                        <textarea id="decision_reason" name="decision_reason" rows="2"
+                                  class="block w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition"
+                                  placeholder="Brief reason for this decision...">{{ deal.decision_reason if deal.decision_reason else '' }}</textarea>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="grid grid-cols-2 gap-3 pt-2">
+                        <button type="submit" name="action" value="approve"
+                                class="w-full py-3 px-4 bg-accent hover:bg-accent-dark text-white font-semibold rounded-lg shadow hover:shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                {% if deal.status in ['active', 'paid_off', 'rejected'] %}disabled{% endif %}>
+                            <svg class="w-5 h-5 inline mr-1.5 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Approve
+                        </button>
+                        <button type="submit" name="action" value="deny"
+                                class="w-full py-3 px-4 bg-white border-2 border-red-200 hover:bg-red-50 text-red-600 font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                {% if deal.status in ['active', 'paid_off', 'rejected'] %}disabled{% endif %}>
+                            <svg class="w-5 h-5 inline mr-1.5 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Deny
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

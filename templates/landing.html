@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+{% block title %}BridgeStone Capital — AI-Powered Private Real Estate Lending{% endblock %}
+{% block head %}
+<style>
+    .hero-pattern {
+        background-image: radial-gradient(circle at 25% 25%, rgba(5, 150, 105, 0.08) 0%, transparent 50%),
+                          radial-gradient(circle at 75% 75%, rgba(26, 54, 93, 0.3) 0%, transparent 50%);
+    }
+    .stat-number { font-variant-numeric: tabular-nums; }
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-up { animation: fadeUp 0.6s ease-out forwards; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- HERO SECTION -->
+<section class="gradient-hero hero-pattern text-white relative overflow-hidden">
+    <div class="absolute inset-0 opacity-10">
+        <div class="absolute top-10 left-10 w-72 h-72 bg-accent rounded-full blur-3xl"></div>
+        <div class="absolute bottom-10 right-10 w-96 h-96 bg-blue-500 rounded-full blur-3xl"></div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32 relative z-10">
+        <div class="max-w-3xl">
+            <div class="inline-flex items-center px-3 py-1 rounded-full bg-accent/20 border border-accent/30 text-accent-light text-sm font-medium mb-6">
+                <span class="w-2 h-2 bg-accent-light rounded-full mr-2 animate-pulse"></span>
+                Now accepting new deals — close in 5-7 days
+            </div>
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-6 animate-fade-up">
+                AI-Powered Private
+                <span class="block text-accent-light">Real Estate Lending</span>
+            </h1>
+            <p class="text-lg md:text-xl text-gray-300 mb-8 max-w-2xl animate-fade-up" style="animation-delay: 0.1s;">
+                Fix-and-Flip Bridge Loans + DSCR Rental Loans.
+                AI underwriting in minutes. Close in 5–7 days.
+                Loans from $50K to $400K.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 animate-fade-up" style="animation-delay: 0.2s;">
+                <a href="{{ url_for('register') }}" class="inline-flex items-center justify-center px-8 py-3.5 bg-accent hover:bg-accent-dark text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all text-lg">
+                    Get Started
+                    <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                    </svg>
+                </a>
+                <a href="#how-it-works" class="inline-flex items-center justify-center px-8 py-3.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg border border-white/20 transition-all text-lg backdrop-blur-sm">
+                    How It Works
+                    <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- PRODUCT CARDS -->
+<section class="py-16 md:py-24 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-14">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Our Lending Products</h2>
+            <p class="text-lg text-gray-500 max-w-2xl mx-auto">Two specialized products designed for real estate investors. Choose the one that fits your strategy.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Bridge Loan Card -->
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow group">
+                <div class="gradient-hero px-8 py-6 text-white">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full bg-accent/30 text-accent-light text-xs font-semibold">Bridge</span>
+                        <svg class="w-10 h-10 text-accent-light opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold">Fix &amp; Flip Bridge Loans</h3>
+                    <p class="text-gray-300 mt-1">Short-term financing for value-add residential projects</p>
+                </div>
+                <div class="px-8 py-6">
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Loan Amount</p>
+                            <p class="text-lg font-bold text-gray-900">$50K – $250K</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Max LTV (ARV)</p>
+                            <p class="text-lg font-bold text-gray-900">70%</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Term</p>
+                            <p class="text-lg font-bold text-gray-900">6–18 months</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Close Time</p>
+                            <p class="text-lg font-bold text-gray-900">5–7 days</p>
+                        </div>
+                    </div>
+                    <ul class="space-y-3 text-sm text-gray-600">
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-accent mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            AI-driven ARV estimation with confidence bands
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-accent mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Draw-based rehab funding with inspections
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-accent mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            No prepayment penalty — flip and pay off anytime
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- DSCR Loan Card -->
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow group">
+                <div class="bg-gradient-to-br from-accent-dark to-emerald-700 px-8 py-6 text-white">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/20 text-white text-xs font-semibold">Rental</span>
+                        <svg class="w-10 h-10 text-white opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold">DSCR Rental Loans</h3>
+                    <p class="text-emerald-100 mt-1">Long-term financing for buy-and-hold rental properties</p>
+                </div>
+                <div class="px-8 py-6">
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Loan Amount</p>
+                            <p class="text-lg font-bold text-gray-900">$75K – $400K</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Max LTV</p>
+                            <p class="text-lg font-bold text-gray-900">80%</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Min DSCR</p>
+                            <p class="text-lg font-bold text-gray-900">1.00x</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Term</p>
+                            <p class="text-lg font-bold text-gray-900">30 years</p>
+                        </div>
+                    </div>
+                    <ul class="space-y-3 text-sm text-gray-600">
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-accent mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Qualify based on property cash flow, not personal income
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-accent mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            AI market rent analysis with confidence intervals
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-accent mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Close in 5–7 days with automated underwriting
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how-it-works" class="py-16 md:py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-14">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">How It Works</h2>
+            <p class="text-lg text-gray-500 max-w-2xl mx-auto">Three simple steps from deal submission to funding. Our AI does the heavy lifting.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="text-center relative">
+                <div class="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg">
+                    <span class="text-3xl font-black text-white">1</span>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Submit Your Deal</h3>
+                <p class="text-gray-500">Enter property address and deal details. Our system pulls comps, market data, and property records instantly.</p>
+                <div class="hidden md:block absolute top-10 -right-4 text-gray-300">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                </div>
+            </div>
+            <div class="text-center relative">
+                <div class="w-20 h-20 bg-accent rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg">
+                    <span class="text-3xl font-black text-white">2</span>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">AI Underwrites in Minutes</h3>
+                <p class="text-gray-500">Our AI engine assesses deal quality, property value, market strength, and borrower experience. Get a score and tier instantly.</p>
+                <div class="hidden md:block absolute top-10 -right-4 text-gray-300">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                </div>
+            </div>
+            <div class="text-center">
+                <div class="w-20 h-20 bg-gradient-to-br from-accent to-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg">
+                    <span class="text-3xl font-black text-white">3</span>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Fund in 5–7 Days</h3>
+                <p class="text-gray-500">Once approved, we close fast. No endless paperwork. No bank committee delays. Just speed and certainty.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- STATS BAR -->
+<section class="bg-primary py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div>
+                <p class="text-3xl md:text-4xl font-bold text-white stat-number">$500M+</p>
+                <p class="text-gray-400 mt-1 text-sm">Capital Deployed</p>
+            </div>
+            <div>
+                <p class="text-3xl md:text-4xl font-bold text-white stat-number">2,500+</p>
+                <p class="text-gray-400 mt-1 text-sm">Loans Closed</p>
+            </div>
+            <div>
+                <p class="text-3xl md:text-4xl font-bold text-white stat-number">5–7</p>
+                <p class="text-gray-400 mt-1 text-sm">Days to Close</p>
+            </div>
+            <div>
+                <p class="text-3xl md:text-4xl font-bold text-white stat-number">&lt;3%</p>
+                <p class="text-gray-400 mt-1 text-sm">Default Rate</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- WHY BRIDGESTONE -->
+<section class="py-16 md:py-24 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-14">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Why BridgeStone Capital</h2>
+            <p class="text-lg text-gray-500 max-w-2xl mx-auto">We're building the future of private real estate lending with AI at the core.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white rounded-xl p-8 shadow-sm border border-gray-100">
+                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Speed</h3>
+                <p class="text-gray-500 text-sm">Traditional lenders take 30–60 days. We close in 5–7 days from submission. AI underwriting eliminates bottlenecks.</p>
+            </div>
+            <div class="bg-white rounded-xl p-8 shadow-sm border border-gray-100">
+                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">AI-Powered</h3>
+                <p class="text-gray-500 text-sm">Machine learning models analyze 100+ data points per deal. Automated ARV estimation, rent analysis, and risk scoring.</p>
+            </div>
+            <div class="bg-white rounded-xl p-8 shadow-sm border border-gray-100">
+                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Small-Balance Focus</h3>
+                <p class="text-gray-500 text-sm">Loans from $50K to $400K. We serve the underserved small-balance market that banks ignore and hard money overcharges.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA SECTION -->
+<section class="py-16 md:py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div class="gradient-hero rounded-3xl px-8 py-14 md:py-20 shadow-2xl">
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Ready to Fund Your Next Deal?</h2>
+            <p class="text-lg text-gray-300 mb-8 max-w-xl mx-auto">Submit your deal today and get an AI-powered underwriting decision in minutes.</p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="{{ url_for('register') }}" class="inline-flex items-center justify-center px-8 py-3.5 bg-accent hover:bg-accent-dark text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all text-lg">
+                    Get Started Now
+                    <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                </a>
+                <a href="#how-it-works" class="inline-flex items-center justify-center px-8 py-3.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg border border-white/20 transition-all text-lg">
+                    Learn More
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

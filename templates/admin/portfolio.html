@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Portfolio — BridgeStone Capital{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Portfolio</h1>
+            <p class="text-gray-500 mt-1">Active loans and portfolio performance.</p>
+        </div>
+        <div class="mt-4 sm:mt-0">
+            <a href="{{ url_for('admin.dashboard') }}" class="text-sm text-gray-500 hover:text-gray-700 transition">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <p class="text-sm text-gray-500 uppercase tracking-wide font-medium">Total Active Loans</p>
+            <p class="text-3xl font-bold text-gray-900 mt-1">{{ summary.total_active | default(0) }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <p class="text-sm text-gray-500 uppercase tracking-wide font-medium">Total Outstanding</p>
+            <p class="text-3xl font-bold text-gray-900 mt-1">{{ summary.total_outstanding | default('$0') }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <p class="text-sm text-gray-500 uppercase tracking-wide font-medium">Avg Interest Rate</p>
+            <p class="text-3xl font-bold text-gray-900 mt-1">{{ '{:.1f}%'.format(summary.avg_rate * 100) if summary.avg_rate is defined else '0.0%' }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <p class="text-sm text-gray-500 uppercase tracking-wide font-medium">Avg DSCR / LTV</p>
+            <p class="text-3xl font-bold text-gray-900 mt-1">{{ summary.avg_ratio | default('—') }}</p>
+        </div>
+    </div>
+
+    <!-- Active Loans Table -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900">Active Loans</h2>
+                <p class="text-sm text-gray-500 mt-0.5">{{ loans | length if loans else 0 }} active loan(s)</p>
+            </div>
+            <div class="flex space-x-2">
+                <span class="inline-flex items-center px-2 py-1 rounded-md bg-green-50 text-green-700 text-xs font-medium">
+                    <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></span>
+                    Performing
+                </span>
+                <span class="inline-flex items-center px-2 py-1 rounded-md bg-yellow-50 text-yellow-700 text-xs font-medium">
+                    <span class="w-1.5 h-1.5 bg-yellow-500 rounded-full mr-1.5"></span>
+                    Watch
+                </span>
+                <span class="inline-flex items-center px-2 py-1 rounded-md bg-red-50 text-red-700 text-xs font-medium">
+                    <span class="w-1.5 h-1.5 bg-red-500 rounded-full mr-1.5"></span>
+                    Delinquent
+                </span>
+            </div>
+        </div>
+
+        {% if loans %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Borrower</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Property</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loan Amount</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Balance</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rate</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for loan in loans %}
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">
+                                {{ loan.borrower.user.name if loan.borrower and loan.borrower.user else '—' }}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-medium text-gray-900 truncate max-w-[200px]">
+                                {{ loan.deal.property.address if loan.deal and loan.deal.property else '—' }}
+                            </div>
+                            <div class="text-xs text-gray-500">
+                                {{ loan.deal.property.city if loan.deal and loan.deal.property else '' }}
+                                {{ loan.deal.property.state if loan.deal and loan.deal.property else '' }}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold
+                                {% if loan.product_type == 'bridge' %}bg-blue-100 text-blue-700
+                                {% else %}bg-emerald-100 text-emerald-700{% endif %}">
+                                {{ 'Bridge' if loan.product_type == 'bridge' else 'DSCR' }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {{ '${:,.0f}'.format(loan.original_amount) if loan.original_amount else '—' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ '${:,.0f}'.format(loan.current_balance) if loan.current_balance else '—' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ '{:.2f}%'.format(loan.interest_rate * 100) if loan.interest_rate else '—' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ '${:,.0f}'.format(loan.monthly_payment) if loan.monthly_payment else '—' }}
+                            {% if loan.next_payment_date %}
+                            <div class="text-xs text-gray-500">Due {{ loan.next_payment_date.strftime('%b %d') }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if loan.days_late is defined and loan.days_late > 30 %}
+                            <span class="inline-flex px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                                {{ loan.days_late }}d late
+                            </span>
+                            {% elif loan.days_late is defined and loan.days_late > 0 %}
+                            <span class="inline-flex px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
+                                {{ loan.days_late }}d late
+                            </span>
+                            {% else %}
+                            <span class="inline-flex px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                                Current
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="px-6 py-12 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+            <h3 class="mt-3 text-sm font-medium text-gray-900">No active loans</h3>
+            <p class="mt-1 text-sm text-gray-500">Loans will appear here once deals are closed and funded.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

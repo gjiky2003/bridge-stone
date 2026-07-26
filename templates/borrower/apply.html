@@ -1,0 +1,529 @@
+{% extends "base.html" %}
+{% block title %}Submit New Deal — BridgeStone Capital{% endblock %}
+{% block head %}
+<style>
+    .step { transition: all 0.3s ease; }
+    .step.active .step-circle { background: #1a365d; border-color: #1a365d; color: white; }
+    .step.completed .step-circle { background: #059669; border-color: #059669; color: white; }
+    .step.completed .step-line { background: #059669; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Submit a New Deal</h1>
+        <p class="text-gray-500 mt-1">Complete the form below. Your deal will be underwritten by our AI engine in minutes.</p>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="mb-10">
+        <div class="flex items-center justify-between">
+            <div class="step active flex-1" data-step="1">
+                <div class="flex items-center">
+                    <div class="step-circle w-10 h-10 rounded-full border-2 border-gray-300 bg-white flex items-center justify-center text-sm font-bold text-gray-500 transition">
+                        <span class="step-number">1</span>
+                        <span class="step-check hidden">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        </span>
+                    </div>
+                    <div class="hidden sm:block ml-2 text-sm font-medium text-gray-700">Product &amp; Property</div>
+                </div>
+            </div>
+            <div class="step-line flex-1 h-0.5 bg-gray-200 mx-3 transition"></div>
+            <div class="step flex-1" data-step="2">
+                <div class="flex items-center justify-center sm:justify-start">
+                    <div class="step-circle w-10 h-10 rounded-full border-2 border-gray-300 bg-white flex items-center justify-center text-sm font-bold text-gray-500 transition">
+                        <span class="step-number">2</span>
+                        <span class="step-check hidden">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        </span>
+                    </div>
+                    <div class="hidden sm:block ml-2 text-sm font-medium text-gray-700">Deal Details</div>
+                </div>
+            </div>
+            <div class="step-line flex-1 h-0.5 bg-gray-200 mx-3 transition"></div>
+            <div class="step flex-1" data-step="3">
+                <div class="flex items-center justify-center sm:justify-start">
+                    <div class="step-circle w-10 h-10 rounded-full border-2 border-gray-300 bg-white flex items-center justify-center text-sm font-bold text-gray-500 transition">
+                        <span class="step-number">3</span>
+                        <span class="step-check hidden">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        </span>
+                    </div>
+                    <div class="hidden sm:block ml-2 text-sm font-medium text-gray-700">Borrower Info</div>
+                </div>
+            </div>
+            <div class="step-line flex-1 h-0.5 bg-gray-200 mx-3 transition"></div>
+            <div class="step flex-1" data-step="4">
+                <div class="flex items-center justify-end sm:justify-start">
+                    <div class="step-circle w-10 h-10 rounded-full border-2 border-gray-300 bg-white flex items-center justify-center text-sm font-bold text-gray-500 transition">
+                        <span class="step-number">4</span>
+                        <span class="step-check hidden">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        </span>
+                    </div>
+                    <div class="hidden sm:block ml-2 text-sm font-medium text-gray-700">Review &amp; Submit</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <form method="POST" action="{{ url_for('borrower.apply') }}" id="deal-form">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <!-- Step 1: Product & Property -->
+            <div class="form-step p-8" id="step-1">
+                <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                    <span class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white text-sm mr-3">1</span>
+                    Product Type &amp; Property
+                </h2>
+
+                <!-- Product Toggle -->
+                <div class="mb-8">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">What type of loan do you need?</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="relative">
+                            <input type="radio" name="product_type" value="bridge" checked class="sr-only product-radio">
+                            <div class="border-2 border-primary rounded-xl p-5 cursor-pointer transition bg-blue-50">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="font-semibold text-gray-900">Bridge Loan</span>
+                                    <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">Fix &amp; Flip</span>
+                                </div>
+                                <p class="text-sm text-gray-500">Short-term financing for property renovation and resale. 6–18 month terms.</p>
+                                <ul class="mt-3 text-xs text-gray-600 space-y-1">
+                                    <li>• Up to 70% LTV (ARV)</li>
+                                    <li>• Draw-based rehab funding</li>
+                                    <li>• $50K – $250K</li>
+                                </ul>
+                            </div>
+                        </label>
+                        <label class="relative">
+                            <input type="radio" name="product_type" value="dscr" class="sr-only product-radio">
+                            <div class="border-2 border-gray-200 rounded-xl p-5 cursor-pointer transition hover:border-gray-300">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="font-semibold text-gray-900">DSCR Loan</span>
+                                    <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">Rental</span>
+                                </div>
+                                <p class="text-sm text-gray-500">Long-term financing for buy-and-hold rental properties. 30-year terms.</p>
+                                <ul class="mt-3 text-xs text-gray-600 space-y-1">
+                                    <li>• Up to 80% LTV</li>
+                                    <li>• Qualify based on rent</li>
+                                    <li>• $75K – $400K</li>
+                                </ul>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Property Info -->
+                <div class="space-y-5">
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Property Information</h3>
+                    <div>
+                        <label for="address" class="block text-sm font-medium text-gray-700 mb-1.5">Property Address *</label>
+                        <input type="text" id="address" name="address" required
+                               class="block w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition"
+                               placeholder="123 Main St, City, State ZIP">
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                            <label for="city" class="block text-sm font-medium text-gray-700 mb-1.5">City</label>
+                            <input type="text" id="city" name="city"
+                                   class="block w-full px-3 py-2 border border-gray-300 rounded-lg sm:text-sm focus:ring-2 focus:ring-primary focus:border-primary transition">
+                        </div>
+                        <div>
+                            <label for="state" class="block text-sm font-medium text-gray-700 mb-1.5">State</label>
+                            <input type="text" id="state" name="state" maxlength="2"
+                                   class="block w-full px-3 py-2 border border-gray-300 rounded-lg sm:text-sm focus:ring-2 focus:ring-primary focus:border-primary transition"
+                                   placeholder="CA">
+                        </div>
+                        <div>
+                            <label for="zip_code" class="block text-sm font-medium text-gray-700 mb-1.5">ZIP</label>
+                            <input type="text" id="zip_code" name="zip_code"
+                                   class="block w-full px-3 py-2 border border-gray-300 rounded-lg sm:text-sm focus:ring-2 focus:ring-primary focus:border-primary transition">
+                        </div>
+                        <div>
+                            <label for="property_type" class="block text-sm font-medium text-gray-700 mb-1.5">Property Type</label>
+                            <select id="property_type" name="property_type"
+                                    class="block w-full px-3 py-2 border border-gray-300 rounded-lg sm:text-sm focus:ring-2 focus:ring-primary focus:border-primary transition">
+                                <option value="">Select...</option>
+                                <option value="SFR">Single Family</option>
+                                <option value="Condo">Condo</option>
+                                <option value="Townhouse">Townhouse</option>
+                                <option value="2-4 Unit">2–4 Unit</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                            <label for="beds" class="block text-sm font-medium text-gray-700 mb-1.5">Beds</label>
+                            <input type="number" id="beds" name="beds" min="1"
+                                   class="block w-full px-3 py-2 border border-gray-300 rounded-lg sm:text-sm focus:ring-2 focus:ring-primary focus:border-primary transition">
+                        </div>
+                        <div>
+                            <label for="baths" class="block text-sm font-medium text-gray-700 mb-1.5">Baths</label>
+                            <input type="number" id="baths" name="baths" step="0.5" min="0"
+                                   class="block w-full px-3 py-2 border border-gray-300 rounded-lg sm:text-sm focus:ring-2 focus:ring-primary focus:border-primary transition">
+                        </div>
+                        <div>
+                            <label for="sqft" class="block text-sm font-medium text-gray-700 mb-1.5">Sq Ft</label>
+                            <input type="number" id="sqft" name="sqft"
+                                   class="block w-full px-3 py-2 border border-gray-300 rounded-lg sm:text-sm focus:ring-2 focus:ring-primary focus:border-primary transition">
+                        </div>
+                        <div>
+                            <label for="year_built" class="block text-sm font-medium text-gray-700 mb-1.5">Year Built</label>
+                            <input type="number" id="year_built" name="year_built"
+                                   class="block w-full px-3 py-2 border border-gray-300 rounded-lg sm:text-sm focus:ring-2 focus:ring-primary focus:border-primary transition">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Deal Details -->
+            <div class="form-step p-8 hidden" id="step-2">
+                <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                    <span class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white text-sm mr-3">2</span>
+                    Deal Details
+                </h2>
+
+                <div class="space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="purchase_price" class="block text-sm font-medium text-gray-700 mb-1.5">Purchase Price *</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 text-sm">$</span>
+                                <input type="number" id="purchase_price" name="purchase_price" required step="0.01"
+                                       class="block w-full pl-7 pr-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition"
+                                       placeholder="250,000">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="loan_amount" class="block text-sm font-medium text-gray-700 mb-1.5">Loan Amount Requested *</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 text-sm">$</span>
+                                <input type="number" id="loan_amount" name="loan_amount" required step="0.01"
+                                       class="block w-full pl-7 pr-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition"
+                                       placeholder="175,000">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="exit_strategy" class="block text-sm font-medium text-gray-700 mb-1.5">Exit Strategy</label>
+                        <select id="exit_strategy" name="exit_strategy"
+                                class="block w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition">
+                            <option value="">Select strategy...</option>
+                            <option value="sale">Resale (Flip)</option>
+                            <option value="refinance">Refinance</option>
+                            <option value="rent">Hold as Rental</option>
+                        </select>
+                    </div>
+
+                    <!-- Bridge-specific fields -->
+                    <div id="bridge-fields" class="space-y-5">
+                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Rehab Details (Bridge)</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="rehab_budget" class="block text-sm font-medium text-gray-700 mb-1.5">Rehab Budget</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 text-sm">$</span>
+                                    <input type="number" id="rehab_budget" name="rehab_budget" step="0.01"
+                                           class="block w-full pl-7 pr-4 py-2.5 border border-gray-300 rounded-lg sm:text-sm focus:ring-2 focus:ring-primary focus:border-primary transition"
+                                           placeholder="50,000">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="arv_estimated" class="block text-sm font-medium text-gray-700 mb-1.5">Estimated ARV (After Repair Value)</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 text-sm">$</span>
+                                    <input type="number" id="arv_estimated" name="arv_estimated" step="0.01"
+                                           class="block w-full pl-7 pr-4 py-2.5 border border-gray-300 rounded-lg sm:text-sm focus:ring-2 focus:ring-primary focus:border-primary transition"
+                                           placeholder="350,000">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="rehab_complexity" class="block text-sm font-medium text-gray-700 mb-1.5">Rehab Complexity (1–5)</label>
+                                <select id="rehab_complexity" name="rehab_complexity"
+                                        class="block w-full px-4 py-2.5 border border-gray-300 rounded-lg sm:text-sm focus:ring-2 focus:ring-primary focus:border-primary transition">
+                                    <option value="">Select...</option>
+                                    <option value="1">1 — Cosmetic only (paint, flooring)</option>
+                                    <option value="2">2 — Light rehab (kitchen/bath updates)</option>
+                                    <option value="3">3 — Moderate (full kitchen/bath, some layout)</option>
+                                    <option value="4">4 — Heavy (structural, systems, layout changes)</option>
+                                    <option value="5">5 — Gut renovation</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="projected_hold_months" class="block text-sm font-medium text-gray-700 mb-1.5">Projected Hold Period</label>
+                                <select id="projected_hold_months" name="projected_hold_months"
+                                        class="block w-full px-4 py-2.5 border border-gray-300 rounded-lg sm:text-sm focus:ring-2 focus:ring-primary focus:border-primary transition">
+                                    <option value="">Select...</option>
+                                    <option value="6">6 months</option>
+                                    <option value="9">9 months</option>
+                                    <option value="12">12 months</option>
+                                    <option value="18">18 months</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="rehab_scope" class="block text-sm font-medium text-gray-700 mb-1.5">Scope of Work</label>
+                            <textarea id="rehab_scope" name="rehab_scope" rows="3"
+                                      class="block w-full px-4 py-2.5 border border-gray-300 rounded-lg sm:text-sm focus:ring-2 focus:ring-primary focus:border-primary transition"
+                                      placeholder="Briefly describe planned renovations..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- DSCR-specific fields -->
+                    <div id="dscr-fields" class="space-y-5 hidden">
+                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Rental Income (DSCR)</h3>
+                        <div>
+                            <label for="monthly_rent" class="block text-sm font-medium text-gray-700 mb-1.5">Expected Monthly Rent</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 text-sm">$</span>
+                                <input type="number" id="monthly_rent" name="monthly_rent" step="0.01"
+                                       class="block w-full pl-7 pr-4 py-2.5 border border-gray-300 rounded-lg sm:text-sm focus:ring-2 focus:ring-primary focus:border-primary transition"
+                                       placeholder="2,500">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Borrower Info -->
+            <div class="form-step p-8 hidden" id="step-3">
+                <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                    <span class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white text-sm mr-3">3</span>
+                    Borrower Information
+                </h2>
+
+                <div class="space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="years_experience" class="block text-sm font-medium text-gray-700 mb-1.5">Years of Real Estate Experience</label>
+                            <input type="number" id="years_experience" name="years_experience" step="0.5" min="0"
+                                   class="block w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition"
+                                   placeholder="3">
+                        </div>
+                        <div>
+                            <label for="credit_score" class="block text-sm font-medium text-gray-700 mb-1.5">Estimated Credit Score</label>
+                            <select id="credit_score" name="credit_score"
+                                    class="block w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition">
+                                <option value="">Select range...</option>
+                                <option value="750">750+ (Excellent)</option>
+                                <option value="700">700–749 (Good)</option>
+                                <option value="650">650–699 (Fair)</option>
+                                <option value="600">600–649 (Below Average)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="completed_flips" class="block text-sm font-medium text-gray-700 mb-1.5">Completed Flips / Rehabs</label>
+                            <input type="number" id="completed_flips" name="completed_flips" min="0"
+                                   class="block w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition"
+                                   placeholder="0">
+                        </div>
+                        <div>
+                            <label for="completed_rentals" class="block text-sm font-medium text-gray-700 mb-1.5">Completed Rentals</label>
+                            <input type="number" id="completed_rentals" name="completed_rentals" min="0"
+                                   class="block w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition"
+                                   placeholder="0">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="entity_type" class="block text-sm font-medium text-gray-700 mb-1.5">Entity Type</label>
+                            <select id="entity_type" name="entity_type"
+                                    class="block w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition">
+                                <option value="">Select...</option>
+                                <option value="LLC">LLC</option>
+                                <option value="S-Corp">S-Corp</option>
+                                <option value="LP">LP</option>
+                                <option value="Individual">Individual</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="entity_state" class="block text-sm font-medium text-gray-700 mb-1.5">Entity Registration State</label>
+                            <input type="text" id="entity_state" name="entity_state" maxlength="2"
+                                   class="block w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition"
+                                   placeholder="CA">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Review & Submit -->
+            <div class="form-step p-8 hidden" id="step-4">
+                <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                    <span class="w-8 h-8 bg-accent rounded-lg flex items-center justify-center text-white text-sm mr-3">4</span>
+                    Review &amp; Submit
+                </h2>
+
+                <p class="text-sm text-gray-500 mb-6">Please review your deal information before submitting. Our AI underwriting engine will analyze your deal and provide a decision within minutes.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gray-50 rounded-xl p-5">
+                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Product</h3>
+                        <div id="review-product" class="text-gray-900 font-medium">—</div>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-5">
+                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Property Address</h3>
+                        <div id="review-address" class="text-gray-900 font-medium">—</div>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-5">
+                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Purchase Price</h3>
+                        <div id="review-purchase" class="text-gray-900 font-medium">—</div>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-5">
+                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Loan Amount</h3>
+                        <div id="review-loan" class="text-gray-900 font-medium">—</div>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-5">
+                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Property Details</h3>
+                        <div id="review-property" class="text-gray-900 font-medium">—</div>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-5">
+                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Exit Strategy</h3>
+                        <div id="review-exit" class="text-gray-900 font-medium">—</div>
+                    </div>
+                </div>
+
+                <div class="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div class="flex items-start space-x-3">
+                        <svg class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                        <p class="text-sm text-blue-800">By submitting, your deal will be analyzed by our AI underwriting engine. A loan officer may reach out for additional documentation. You'll receive a risk tier and preliminary terms within minutes.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="px-8 py-4 border-t border-gray-100 bg-gray-50 flex justify-between">
+                <button type="button" id="prev-btn" onclick="prevStep()"
+                        class="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    ← Previous
+                </button>
+                <button type="button" id="next-btn" onclick="nextStep()"
+                        class="px-6 py-2.5 text-sm font-semibold text-white bg-primary hover:bg-primary-dark rounded-lg shadow transition">
+                    Next →
+                </button>
+                <button type="submit" id="submit-btn"
+                        class="px-6 py-2.5 text-sm font-semibold text-white bg-accent hover:bg-accent-dark rounded-lg shadow transition hidden">
+                    Submit Deal
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    let currentStep = 1;
+    const totalSteps = 4;
+
+    function updateUI() {
+        // Show/hide steps
+        document.querySelectorAll('.form-step').forEach(s => s.classList.add('hidden'));
+        document.getElementById('step-' + currentStep).classList.remove('hidden');
+
+        // Update progress bar
+        document.querySelectorAll('.step').forEach((el, i) => {
+            const stepNum = i + 1;
+            el.classList.remove('active', 'completed');
+            if (stepNum < currentStep) {
+                el.classList.add('completed');
+                el.querySelector('.step-number').classList.add('hidden');
+                el.querySelector('.step-check').classList.remove('hidden');
+            } else if (stepNum === currentStep) {
+                el.classList.add('active');
+                el.querySelector('.step-number').classList.remove('hidden');
+                el.querySelector('.step-check').classList.add('hidden');
+            }
+        });
+
+        // Update lines between steps
+        document.querySelectorAll('.step-line').forEach((line, i) => {
+            if (i < currentStep - 1) line.classList.add('bg-accent');
+            else line.classList.remove('bg-accent');
+        });
+
+        // Navigation buttons
+        document.getElementById('prev-btn').disabled = currentStep === 1;
+        if (currentStep === totalSteps) {
+            document.getElementById('next-btn').classList.add('hidden');
+            document.getElementById('submit-btn').classList.remove('hidden');
+        } else {
+            document.getElementById('next-btn').classList.remove('hidden');
+            document.getElementById('submit-btn').classList.add('hidden');
+        }
+    }
+
+    function nextStep() {
+        if (currentStep < totalSteps) {
+            currentStep++;
+            if (currentStep === totalSteps) populateReview();
+            updateUI();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    function prevStep() {
+        if (currentStep > 1) {
+            currentStep--;
+            updateUI();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    function populateReview() {
+        const getVal = (id) => document.getElementById(id)?.value || '—';
+        const productType = document.querySelector('input[name="product_type"]:checked')?.value || 'bridge';
+        const productLabel = productType === 'bridge' ? 'Fix & Flip Bridge Loan' : 'DSCR Rental Loan';
+
+        document.getElementById('review-product').textContent = productLabel;
+        document.getElementById('review-address').textContent = getVal('address') + ', ' + getVal('city') + ', ' + getVal('state') + ' ' + getVal('zip_code');
+        document.getElementById('review-purchase').textContent = getVal('purchase_price') ? '$' + Number(getVal('purchase_price')).toLocaleString() : '—';
+        document.getElementById('review-loan').textContent = getVal('loan_amount') ? '$' + Number(getVal('loan_amount')).toLocaleString() : '—';
+        document.getElementById('review-property').textContent = [
+            getVal('property_type'), getVal('beds') + ' bed', getVal('baths') + ' bath', getVal('sqft') + ' sqft'
+        ].filter(x => x && !x.startsWith('—') && !x.startsWith('0')).join(' · ') || '—';
+        document.getElementById('review-exit').textContent = getVal('exit_strategy') || '—';
+    }
+
+    // Toggle bridge/dscr fields
+    document.querySelectorAll('.product-radio').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const bridgeFields = document.getElementById('bridge-fields');
+            const dscrFields = document.getElementById('dscr-fields');
+            if (this.value === 'bridge') {
+                bridgeFields.classList.remove('hidden');
+                dscrFields.classList.add('hidden');
+            } else {
+                bridgeFields.classList.add('hidden');
+                dscrFields.classList.remove('hidden');
+            }
+        });
+    });
+
+    // Product option card highlighting
+    document.querySelectorAll('input[name="product_type"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            document.querySelectorAll('input[name="product_type"] + div').forEach(div => {
+                div.classList.remove('border-primary', 'bg-blue-50');
+                div.classList.add('border-gray-200');
+            });
+            if (this.checked) {
+                const card = this.nextElementSibling;
+                card.classList.add('border-primary', 'bg-blue-50');
+                card.classList.remove('border-gray-200');
+            }
+        });
+    });
+
+    // Initialize
+    updateUI();
+</script>
+{% endblock %}

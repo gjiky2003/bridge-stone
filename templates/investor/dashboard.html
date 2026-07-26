@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block title %}Investor Dashboard — BridgeStone Capital{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Welcome back, {{ current_user.name }}</h1>
+        <p class="text-gray-500 mt-1">Your investment portfolio at a glance.</p>
+    </div>
+
+    <!-- Portfolio Stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-500 uppercase tracking-wide font-medium">Portfolio Value</p>
+                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.portfolio_value | default('$0') }}</p>
+                </div>
+                <div class="w-10 h-10 bg-primary-light rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-500 uppercase tracking-wide font-medium">Total Return</p>
+                    <p class="text-2xl font-bold text-accent mt-1">{{ stats.total_return | default('$0') }}</p>
+                </div>
+                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-500 uppercase tracking-wide font-medium">Avg. Yield</p>
+                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ '{:.1f}%'.format(stats.avg_yield * 100) if stats.avg_yield is defined else '0.0%' }}</p>
+                </div>
+                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-500 uppercase tracking-wide font-medium">Available Balance</p>
+                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.available_balance | default('$0') }}</p>
+                </div>
+                <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Account Summary -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Account Summary</h3>
+            <div class="space-y-3">
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">Total Committed</span>
+                    <span class="font-semibold text-gray-900">{{ stats.total_committed | default('$0') }}</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">Total Invested</span>
+                    <span class="font-semibold text-gray-900">{{ stats.total_invested | default('$0') }}</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">Preferred Return</span>
+                    <span class="font-semibold text-gray-900">{{ '{:.1f}%'.format(stats.preferred_return * 100) if stats.preferred_return is defined else '8.0%' }}</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">Profit Split</span>
+                    <span class="font-semibold text-gray-900">{{ '{:.0f}%'.format(stats.profit_split * 100) if stats.profit_split is defined else '70%' }}</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">Active Investments</span>
+                    <span class="font-semibold text-gray-900">{{ investments | length if investments else 0 }}</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">Accreditation</span>
+                    <span class="font-semibold
+                        {% if stats.accreditation == 'verified' %}text-accent
+                        {% elif stats.accreditation == 'pending' %}text-yellow-600
+                        {% else %}text-red-600{% endif %}">
+                        {{ stats.accreditation | title if stats.accreditation else 'Pending' }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Investments -->
+        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900">Active Investments</h3>
+                    <p class="text-sm text-gray-500 mt-0.5">{{ investments | length if investments else 0 }} active investment(s)</p>
+                </div>
+                <a href="{{ url_for('investor.pipeline') }}" class="inline-flex items-center px-4 py-2 bg-accent text-white text-sm font-semibold rounded-lg hover:bg-accent-dark transition">
+                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                    View New Deals
+                </a>
+            </div>
+
+            {% if investments %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Property</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invested</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Return</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Yield</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for inv in investments %}
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900 truncate max-w-[180px]">
+                                    {{ inv.loan.deal.property.address if inv.loan and inv.loan.deal and inv.loan.deal.property else 'Property' }}
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    {{ inv.loan.deal.property.city if inv.loan and inv.loan.deal and inv.loan.deal.property else '' }}
+                                    {{ inv.loan.deal.property.state if inv.loan and inv.loan.deal and inv.loan.deal.property else '' }}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold
+                                    {% if inv.loan and inv.loan.product_type == 'bridge' %}bg-blue-100 text-blue-700
+                                    {% else %}bg-emerald-100 text-emerald-700{% endif %}">
+                                    {{ 'Bridge' if inv.loan and inv.loan.product_type == 'bridge' else 'DSCR' }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {{ '${:,.0f}'.format(inv.amount) if inv.amount else '—' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium {% if inv.total_return and inv.total_return > 0 %}text-accent{% else %}text-gray-900{% endif %}">
+                                {{ '${:,.0f}'.format(inv.total_return) if inv.total_return else '—' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium {% if inv.irr and inv.irr > 8 %}text-accent{% else %}text-gray-900{% endif %}">
+                                {{ '{:.1f}%'.format(inv.irr * 100) if inv.irr else '—' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex px-2 py-1 rounded-full text-xs font-semibold
+                                    {% if inv.status == 'active' %}bg-green-100 text-green-700
+                                    {% elif inv.status == 'pending' %}bg-yellow-100 text-yellow-700
+                                    {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                    {{ inv.status | title }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="px-6 py-12 text-center">
+                <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                </svg>
+                <h3 class="mt-3 text-sm font-medium text-gray-900">No active investments</h3>
+                <p class="mt-1 text-sm text-gray-500">Browse the deal pipeline to find investment opportunities.</p>
+                <div class="mt-5">
+                    <a href="{{ url_for('investor.pipeline') }}" class="inline-flex items-center px-4 py-2 bg-accent text-white text-sm font-semibold rounded-lg hover:bg-accent-dark transition">
+                        Browse Deals
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
