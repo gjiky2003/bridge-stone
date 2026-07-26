@@ -468,6 +468,7 @@ def submit_deal(id):
             deal.projected_roi = round(deal.projected_profit / purchase_price, 4)
 
     # ---- AI Underwriting ----
+    auto_decision = None
     try:
         address = (deal.property.address if deal.property else '')
         result = _run_prescreen(address, deal.product_type)
@@ -480,10 +481,35 @@ def submit_deal(id):
             + (borrower.years_experience or 0) * 2
             + (borrower.completed_flips or 0) * 1.5
         ))
+        
+        # AUTO-DECISION ENGINE
+        score = deal.deal_score or 0
+        tier = deal.risk_tier or 'C'
+        ltv = deal.ltv_arv or 0.99
+        
+        if tier in ('A', 'B') and score >= 70 and ltv <= 0.70:
+            auto_decision = 'approved'
+            deal.status = 'approved'
+            deal.approved_at = datetime.now(timezone.utc)
+            deal.reviewed_at = datetime.now(timezone.utc)
+            deal.approved_rate = {'A': 9.50, 'B': 10.50, 'C': 11.50, 'D': 12.50}.get(tier, 10.5)
+            deal.approved_points = {'A': 2.0, 'B': 2.5, 'C': 3.5, 'D': 4.5}.get(tier, 2.5)
+            deal.approved_term_months = 12
+            logger.info(f"AUTO-APPROVED #{deal.id}: Score={score}, Tier={tier}")
+        elif tier == 'R' or score < 40:
+            auto_decision = 'declined'
+            deal.status = 'rejected'
+            deal.reviewed_at = datetime.now(timezone.utc)
+            reasons = result.get('flags', 'Did not meet underwriting criteria')
+            deal.decision_reason = '; '.join(str(f) for f in reasons) if isinstance(reasons, list) else str(reasons)
+            logger.info(f"AUTO-DECLINED #{deal.id}: Score={score}, Tier={tier}")
+        else:
+            deal.status = 'under_review'
+            logger.info(f"MANUAL REVIEW #{deal.id}: Score={score}, Tier={tier}")
+            
     except Exception as exc:
         logger.warning("Underwriting failed during submit: %s", exc)
-
-    deal.status = 'under_review'
+        deal.status = 'under_review'
     deal.submitted_at = datetime.now(timezone.utc)
     db.session.commit()
 
@@ -491,7 +517,13 @@ def submit_deal(id):
     session.pop('apply_step1', None)
     session.pop('apply_step2', None)
 
-    flash('Deal submitted! Our team will review it shortly.', 'success')
+    if auto_decision == 'approved':
+        flash(f'🎉 Instant Approval! Tier {tier}, Rate: {deal.approved_rate}%, Points: {deal.approved_points} pts. View your term sheet.', 'success')
+    elif auto_decision == 'declined':
+        flash(f'Not approved. Reason: {deal.decision_reason}. A loan officer will follow up.', 'warning')
+    else:
+        flash('Deal submitted! AI scored it — a loan officer reviews within 2 hours.', 'success')
+    
     return redirect(url_for('borrower.deal_detail', id=deal.id))
 
 
