@@ -68,16 +68,20 @@ TIER_MAP: Dict[Tuple[int, int], str] = {
     (0, 39): "R",
 }
 
-# Rate and points by tier (base, adjusts for fine score)
-_BASE_RATES = {"A": 9.75, "B": 10.50, "C": 11.25, "D": 12.00, "R": 0.0}
-_BASE_POINTS = {"A": 2.0, "B": 2.5, "C": 3.0, "D": 3.5, "R": 0.0}
+# Rate and points by tier — aligned with Richmond/LendingOne industry data
+_BASE_RATES = {"A": 9.50, "B": 10.50, "C": 11.50, "D": 12.50, "R": 0.0}
+_BASE_POINTS = {"A": 2.0, "B": 2.5, "C": 3.5, "D": 4.5, "R": 0.0}
+
+# Maximum LTV by tier (ARV-based for bridge)
+_MAX_LTV_BY_TIER = {"A": 0.75, "B": 0.70, "C": 0.65, "D": 0.60}
 
 # Gating rule constants
 MIN_COMPLETED_FLIPS = 2
-MAX_LTV_ARV = 0.70
+MIN_COMPLETED_FLIPS_A = 5  # Tier A: 5+ flips
+MAX_LTV_ARV = 0.75          # Absolute max LTV for any bridge loan
 MIN_BORROWER_EQUITY = 0.10  # 10% of total project cost
 MAX_REHAB_PCT_OF_ARV = 0.40
-MIN_ARV = 75000.0
+MIN_ARV = 50000.0            # Lowered to match $50K minimum on landing page
 
 
 # ---------------------------------------------------------------------------

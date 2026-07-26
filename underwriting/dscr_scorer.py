@@ -68,16 +68,38 @@ TIER_MAP: Dict[Tuple[int, int], str] = {
     (0, 39): "R",
 }
 
-# Base rates and points by tier
-_BASE_RATES = {"A": 7.50, "B": 8.25, "C": 9.00, "D": 9.75, "R": 0.0}
+# Base rates and points by tier — aligned with LendingOne/FOA industry data
+_BASE_RATES = {"A": 6.75, "B": 7.50, "C": 8.25, "D": 9.50, "R": 0.0}
 _BASE_POINTS = {"A": 1.5, "B": 2.0, "C": 2.5, "D": 3.0, "R": 0.0}
 
+# DSCR → LTV cascade (industry standard: FOA + LendingOne)
+# DSCR ≥ 1.25 → 80% LTV (best)
+# DSCR 1.15-1.24 → 80% LTV (good)
+# DSCR 1.00-1.14 → 75% LTV (FOA: "capped at 75% due to DSCR being below 1.00")
+# DSCR 0.75-0.99 → 70% LTV (LendingOne RentalFlex, higher rate)
+# DSCR < 0.75 → Reject
+DSCR_LTV_MAP = [
+    (1.25, 0.80),   # Excellent cash flow
+    (1.15, 0.80),   # Strong cash flow
+    (1.00, 0.75),   # Adequate — FOA policy
+    (0.75, 0.70),   # RentalFlex tier — higher rate
+]
+
 # Gating rule constants
-MIN_DSCR = 1.00
+MIN_DSCR = 0.75           # RentalFlex minimum (LendingOne: 0.75)
+MIN_DSCR_STANDARD = 1.00  # Standard minimum
 MAX_LTV = 0.80
 MIN_RENTAL_PROPERTIES = 1
 MIN_LOAN_AMOUNT = 75000
 MAX_LOAN_AMOUNT = 400000
+
+# Rent discount for DSCR calculation — industry standard 25%
+# LendingOne: "Do you discount the estimated rent before DSCR?"
+# Standard: 75% of gross rent used (25% haircut for vacancy + maintenance + management)
+RENT_DISCOUNT_FACTOR = 0.75
+
+# Vacant property reserve — 3 months PITI (FOA policy)
+VACANT_RESERVE_MONTHS = 3
 
 
 # ---------------------------------------------------------------------------
@@ -251,16 +273,29 @@ class DSCRScorer:
         rent_data: Dict[str, Any],
         borrower_data: Dict[str, Any],
     ) -> Dict[str, Any]:
-        """Check all mandatory DSCR gating rules."""
+        """Check all mandatory DSCR gating rules.
 
+        Uses cascading DSCR→LTV map instead of flat thresholds.
+        Matches FOA/LendingOne industry standards.
+        """
+        
         reasons: List[str] = []
-
-        # 1. DSCR >= 1.00
+        
+        # 1. DSCR gating — use cascading map
         dscr = rent_data.get("dscr", 0)
-        if dscr > 0 and dscr < MIN_DSCR:
-            reasons.append(f"DSCR ({dscr:.2f}) below minimum ({MIN_DSCR:.2f})")
-
-        # 2. Max LTV (80%)
+        ltv_cap = MAX_LTV  # default
+        if dscr > 0:
+            ltv_cap = 0.0
+            for threshold, cap in DSCR_LTV_MAP:
+                if dscr >= threshold:
+                    ltv_cap = cap
+                    break
+            if dscr < MIN_DSCR:
+                reasons.append(
+                    f"DSCR ({dscr:.2f}) below minimum ({MIN_DSCR:.2f})"
+                )
+        
+        # 2. Max LTV — calculated from DSCR cascade
         value = property_data.get("arv_mid", property_data.get("value", 0))
         loan_amount = property_data.get(
             "loan_amount",
@@ -268,34 +303,36 @@ class DSCRScorer:
         )
         if value > 0 and loan_amount > 0:
             ltv = loan_amount / value
-            if ltv > MAX_LTV:
-                reasons.append(f"LTV ({ltv:.1%}) exceeds maximum ({MAX_LTV:.0%})")
-
+            if ltv > ltv_cap:
+                reasons.append(
+                    f"LTV ({ltv:.1%}) exceeds DSCR-based cap ({ltv_cap:.0%} for DSCR {dscr:.2f})"
+                )
+        
         # 3. Minimum 1 rental property experience
         rentals = borrower_data.get("completed_rentals", 0)
         if rentals < MIN_RENTAL_PROPERTIES:
             reasons.append(
                 f"Rental property count ({rentals}) below minimum ({MIN_RENTAL_PROPERTIES})"
             )
-
+        
         # 4. Min loan amount
         if loan_amount > 0 and loan_amount < MIN_LOAN_AMOUNT:
             reasons.append(
                 f"Loan amount (${loan_amount:,.0f}) below minimum (${MIN_LOAN_AMOUNT:,.0f})"
             )
-
+        
         # 5. Max loan amount
         if loan_amount > MAX_LOAN_AMOUNT:
             reasons.append(
                 f"Loan amount (${loan_amount:,.0f}) exceeds maximum (${MAX_LOAN_AMOUNT:,.0f})"
             )
-
+        
         # 6. NOT owner-occupied
         occupancy = property_data.get("occupancy", "investment")
         if occupancy == "owner_occupied":
             reasons.append("Owner-occupied properties not eligible for DSCR loans")
-
-        return {"passed": len(reasons) == 0, "reasons": reasons}
+        
+        return {"passed": len(reasons) == 0, "reasons": reasons, "ltv_cap": ltv_cap}
 
     # ------------------------------------------------------------------
     # Stage 2 — Pillar Scoring
